@@ -1,0 +1,10 @@
+{
+  "[markdown]": {
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": null,
+    "editor.wordWrap": "on",
+    "editor.codeActionsOnSave": {}
+  },
+  "prettier.enable": false,
+  "files.trimTrailingWhitespace": false
+}
