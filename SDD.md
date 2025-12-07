@@ -50,7 +50,7 @@ The application follows a modern three-tier architecture with asynchronous proce
 ### 1.2 Architecture Diagram
 
 ```mermaid
-graph TB
+    graph TB
     Client[💻 Web Client<br/>Next.js App]
     Server[⚙️ API Gateway<br/>Next.js Server]
     Auth[🔐 Authentication<br/>Clerk/NextAuth]
@@ -67,7 +67,7 @@ graph TB
     Worker -.->|Process| DB
     Client -->|Upload| Storage
     Worker -.->|Generate| Storage
-    
+        
     
 ```
 
