@@ -68,12 +68,7 @@ graph TB
     Client -->|Upload| Storage
     Worker -.->|Generate| Storage
     
-    style Client fill:#e3f2fd
-    style Server fill:#fff8e1
-    style DB fill:#e8f5e9
-    style Redis fill:#ffebee
-    style Storage fill:#f3e5f5
-    style Worker fill:#fff8e1
+    
 ```
 
 ### 1.3 Key Architectural Decisions
