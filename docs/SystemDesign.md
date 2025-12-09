@@ -1,1424 +1,1548 @@
-# Trading Journal - System Design Document
+# Trading Journal SaaS - System Design Document
 
-**Project:** Trading Journal (Personal → SaaS)  
+**Project:** Trading Journal SaaS  
+**Version:** 3.0  
+**Status:** Final  
+**Last Updated:** December 10, 2025  
 **Author:** Junaid Ali Khan  
-**Version:** 1.0  
-**Status:** Draft  
-**Last Updated:** December 8, 2025
+
+## 1. System Architecture Overview
+
+### 1.1 High-Level Architecture
+
+```mermaid
+graph TB
+    %% USERS
+    User[👤 User<br/>Traders & Teams] --> Client
+    
+    %% FRONTEND LAYER
+    subgraph Frontend["📱 Frontend - Next.js"]
+        Client[💻 Web App<br/>Dashboard & Forms]
+    end
+    
+    %% API REQUESTS
+    Client -->|HTTP Requests| API
+    
+    %% API LAYER WITH AUTH
+    subgraph Backend["⚙️ Backend API - Express.js"]
+        API[🌐 REST API<br/>Endpoints]
+        API --> Auth[🔐 Authentication<br/>JWT + Google]
+        API -->|After Auth| Services[🔧 Services<br/>Business Logic]
+    end
+    
+    %% EXTERNAL SERVICES
+    subgraph External["🌐 External Services"]
+        Razorpay[💳 Razorpay<br/>Payments]
+        Email[📧 Resend<br/>Email]
+        OAuth[🔓 Google<br/>OAuth Login]
+    end
+    
+    Auth -->|Login Flow| OAuth
+    Services -->|Process Payment| Razorpay
+    Services -->|Send Email| Email
+    
+    %% BACKGROUND WORKERS
+    Workers[🔧 Background Workers<br/>BullMQ] -->|Process| DB
+    Workers -->|Upload| Storage
+    Workers -->|Send| Email
+    
+    Services -.->|Queue Jobs| Workers
+    
+    %% DATA LAYER
+    subgraph DataLayer["🗄️ Data & Storage"]
+        DB[(📊 PostgreSQL<br/>Trades & Users)]
+        Redis[(⚡ Redis<br/>Cache & Queue)]
+        Storage[☁️ S3 Storage<br/>Files & Reports]
+    end
+    
+    %% DATA FLOW
+    Services -->|Read/Write| DB
+    Services -->|Cache| Redis
+    Client -->|Direct Upload| Storage
+    Services -->|Generate URL| Storage
+```
+
+### 1.2 Technology Stack Overview
+
+**Frontend Layer:**
+- **Next.js 14** with App Router for server-side rendering and API routes
+- **React 18** with modern hooks and concurrent features
+- **Tailwind CSS + shadcn/ui** for consistent, accessible UI components
+- **React Query** for server-state management and caching
+- **Recharts** for data visualization and equity curves
+
+**Application Layer:**
+- **Express.js** with TypeScript for robust API development
+- **DrizzleORM** for type-safe database interactions
+- **BullMQ** with Redis for background job processing
+- **Zod** for runtime type validation and schema definition
+- **JWT + Argon2** for secure authentication
+
+**Data Layer:**
+- **PostgreSQL (Neon)** for primary data storage with RLS
+- **Redis (Upstash)** for caching, sessions, and job queues
+- **AWS S3** for file storage with direct client uploads
+
+**Infrastructure:**
+- **Vercel** for frontend deployment with global CDN
+- **Render/Railway** for backend API and workers
+- **Razorpay** for subscription billing and payments
+- **Resend** for transactional email delivery
+- **Sentry** for error tracking and monitoring
+
+### 1.3 Core System Characteristics
+
+- **Multi-tenancy**: Each customer's data is isolated using PostgreSQL Row-Level Security
+- **Real-time Analytics**: Cached performance metrics with 5-minute freshness
+- **Background Processing**: Heavy operations like CSV imports processed asynchronously
+- **Horizontal Scalability**: Stateless services with Redis for session management
+- **Security-First**: JWT with refresh token rotation, rate limiting, and input validation
+- **Observability**: Structured logging, distributed tracing, and performance monitoring
+
+## 2. Component Architecture
+
+### 2.1 Frontend Architecture
+
+```mermaid
+graph TD
+    User[👤 User] --> Pages
+    Pages[📄 Pages<br/>Next.js App Router] --> Layouts
+    Layouts[🧩 Layouts<br/>Auth/Unauth] --> Components
+    Components[🧩 Components<br/>Modular UI] --> Services
+    Services[⚡ Services<br/>API Client] --> API[🌐 Backend API]
+    
+    subgraph "State Management"
+        ServerState[🔄 Server State<br/>React Query]
+        ClientState[💾 Client State<br/>Zustand]
+        FormState[📝 Form State<br/>React Hook Form]
+    end
+    
+    Components --> ServerState
+    Components --> ClientState
+    Components --> FormState
+    
+    subgraph "UI Components"
+        Charts[📈 Charts<br/>Recharts]
+        Tables[📋 Data Tables<br/>TanStack Table]
+        Forms[✏️ Forms<br/>shadcn/ui]
+        Dashboard[📊 Dashboard<br/>Metric Cards]
+    end
+    
+    Components --> Charts
+    Components --> Tables
+    Components --> Forms
+    Components --> Dashboard
+```
+
+**Frontend Structure:**
+- **App Router**: Page-based routing with server components for performance
+- **Layout System**: Separate layouts for authenticated/unauthenticated users
+- **Component Library**: Reusable UI components built with Tailwind CSS
+- **Service Layer**: Type-safe API client with automatic token refresh
+- **State Management**: Hybrid approach with React Query for server data, Zustand for client state
+
+**Key Frontend Features:**
+- **Dashboard**: Real-time performance metrics and equity curve visualization
+- **Trade Journal**: Form-based trade entry with validation and autocomplete
+- **Analytics Hub**: Interactive charts and performance breakdowns
+- **Settings Panel**: User preferences, team management, and billing
+- **Mobile Responsive**: Optimized for tablets and mobile devices
+
+### 2.2 Backend Architecture
+
+```mermaid
+graph LR
+    API[🌐 API Gateway<br/>Express Server] --> Middleware
+    Middleware[🛡️ Middleware Stack] --> Routes
+    Routes[🛣️ Route Handlers] --> Services
+    
+    subgraph "Middleware Layer"
+        AuthMiddleware[🔐 Authentication]
+        TenantMiddleware[🏢 Tenant Context]
+        RBACMiddleware[👥 Role-Based Access]
+        Validation[✓ Input Validation]
+        RateLimit[🚫 Rate Limiting]
+    end
+    
+    subgraph "Service Layer"
+        TradeService[💹 Trade Management]
+        AnalyticsService[📊 Analytics Engine]
+        BillingService[💰 Subscription Service]
+        ImportService[📁 Data Import]
+        EmailService[📧 Notifications]
+    end
+    
+    Services --> DataAccess
+    DataAccess[🗄️ Data Access Layer] --> DB[(PostgreSQL)]
+    
+    subgraph "Infrastructure Services"
+        Cache[⚡ Redis Cache]
+        Queue[🔧 BullMQ Queue]
+        Storage[☁️ S3 Storage]
+    end
+    
+    Services --> Cache
+    Services --> Queue
+    Services --> Storage
+```
+
+**Backend Layer Responsibilities:**
+
+**API Gateway:**
+- HTTP request/response handling
+- Routing and endpoint management
+- Error handling and logging
+
+**Middleware Stack:**
+- **Authentication**: JWT validation and user context extraction
+- **Tenant Isolation**: Sets tenant context for RLS policies
+- **RBAC**: Role-based permission checking
+- **Validation**: Request payload validation using Zod schemas
+- **Rate Limiting**: Protects against abuse and DoS attacks
+
+**Service Layer:**
+- **TradeService**: Business logic for trade creation, updates, and calculations
+- **AnalyticsService**: Performance metric computation and caching
+- **BillingService**: Subscription management and payment processing
+- **ImportService**: CSV parsing and bulk data operations
+- **EmailService**: Notification and report delivery
+
+## 3. Authentication & Authorization Architecture
+
+### 3.1 Authentication Flow Diagram
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 User
+    participant Frontend as 💻 Frontend
+    participant Backend as ⚙️ Backend
+    participant DB as 🗄️ Database
+    participant Redis as ⚡ Redis
+    
+    Note over User,Redis: Email/Password Login Flow
+    User->>Frontend: Enters credentials
+    Frontend->>Backend: POST /api/auth/login
+    Backend->>Backend: Validate credentials
+    Backend->>DB: Verify user exists
+    DB-->>Backend: User data
+    Backend->>Backend: Generate JWT tokens
+    Backend->>Redis: Store refresh token
+    Backend-->>Frontend: Access token + HTTP-only refresh cookie
+    Frontend-->>User: Dashboard access
+    
+    Note over User,Redis: Token Refresh Flow
+    Frontend->>Backend: POST /api/auth/refresh (with cookie)
+    Backend->>Redis: Validate refresh token
+    Redis-->>Backend: Token valid
+    Backend->>Backend: Rotate tokens
+    Backend->>Redis: Delete old, store new
+    Backend-->>Frontend: New access token
+    
+    Note over User,Redis: Google OAuth Flow
+    User->>Frontend: Click "Login with Google"
+    Frontend->>Google: OAuth redirect
+    Google-->>Frontend: Authorization code
+    Frontend->>Backend: POST /api/auth/google/callback
+    Backend->>Google: Exchange code for tokens
+    Google-->>Backend: User info
+    Backend->>DB: Find/create user
+    Backend-->>Frontend: Application tokens
+```
+
+### 3.2 Authentication Components
+
+**Token Strategy:**
+- **Access Tokens**: JWT tokens with 15-minute expiry, containing user ID, tenant ID, and role
+- **Refresh Tokens**: Random strings stored in Redis with 7-day expiry, sent as HTTP-only cookies
+- **Token Rotation**: Refresh tokens are rotated on each use to prevent replay attacks
+
+**Password Security:**
+- **Argon2id** for password hashing with memory-hard properties
+- **Pepper** (application secret) added to passwords before hashing
+- **Rate limiting** on authentication endpoints (10 attempts/hour)
+- **Account lockout** after 5 failed attempts (30-minute cooldown)
+
+**Multi-factor Authentication (Future):**
+- TOTP-based 2FA for enhanced security
+- Backup codes for recovery
+- Email/SMS fallback options
+
+### 3.3 Authorization Model
+
+**Role-Based Access Control (RBAC):**
+
+```mermaid
+graph TD
+    subgraph "Role Hierarchy"
+        Owner[👑 Owner<br/>Full Control]
+        Admin[🛡️ Admin<br/>Manage Team]
+        Member[👤 Member<br/>Trade Operations]
+        Viewer[👁️ Viewer<br/>Read-Only]
+    end
+    
+    Owner --> Admin
+    Admin --> Member
+    Member --> Viewer
+    
+    subgraph "Owner Permissions"
+        O1[Manage Users]
+        O2[Manage Billing]
+        O3[Access All Data]
+        O4[Configure Workspace]
+        O5[Delete Workspace]
+    end
+    
+    subgraph "Admin Permissions"
+        A1[Invite Users]
+        A2[Assign Roles]
+        A3[View All Trades]
+        A4[Manage Tags]
+    end
+    
+    subgraph "Member Permissions"
+        M1[Create Trades]
+        M2[Edit Own Trades]
+        M3[View Analytics]
+        M4[Export Own Data]
+    end
+    
+    subgraph "Viewer Permissions"
+        V1[View Trades]
+        V2[View Analytics]
+        V3[View Reports]
+    end
+```
+
+**Permission Matrix:**
+| Permission | Owner | Admin | Member | Viewer |
+|------------|-------|-------|--------|--------|
+| Manage Users | ✅ | ✅ | ❌ | ❌ |
+| Manage Billing | ✅ | ❌ | ❌ | ❌ |
+| Create Trades | ✅ | ✅ | ✅ | ❌ |
+| Edit All Trades | ✅ | ✅ | ❌ | ❌ |
+| Edit Own Trades | ✅ | ✅ | ✅ | ❌ |
+| Delete All Trades | ✅ | ✅ | ❌ | ❌ |
+| Delete Own Trades | ✅ | ✅ | ✅ | ❌ |
+| View Analytics | ✅ | ✅ | ✅ | ✅ |
+| Export Data | ✅ | ✅ | Limited | ❌ |
+| Manage Tags | ✅ | ✅ | ❌ | ❌ |
+
+**Resource-Level Permissions:**
+- Trades are owned by individual users but visible to team members based on role
+- Analytics data aggregates across the workspace
+- Billing information only accessible to workspace owners
+- Export functionality respects data ownership boundaries
+
+## 4. Multi-Tenant Architecture
+
+### 4.1 Tenant Isolation Strategy
+
+```mermaid
+graph TB
+    subgraph "Multi-Tenant Database"
+        DB[(PostgreSQL Database)]
+        
+        subgraph "Shared Schema"
+            TenantsTable[tenants<br/>ID, Name, Plan]
+            UsersTable[users<br/>Email, Password]
+            TradesTable[trades<br/>Tenant_ID, User_ID]
+            TenantUsersTable[tenant_users<br/>Roles]
+        end
+    end
+    
+    subgraph "Tenant Context"
+        Request[🌐 HTTP Request] --> Middleware
+        Middleware[🏢 Tenant Middleware] --> Context
+        Context[🔧 Tenant Context<br/>tenant_id=X]
+    end
+    
+    Context --> RLS[🔒 Row-Level Security]
+    RLS --> TenantsTable
+    RLS --> TradesTable
+    RLS --> TenantUsersTable
+    
+    subgraph "Tenant 1 Data"
+        T1_Trades[Trades for Tenant 1]
+        T1_Users[Users in Tenant 1]
+    end
+    
+    subgraph "Tenant 2 Data"
+        T2_Trades[Trades for Tenant 2]
+        T2_Users[Users in Tenant 2]
+    end
+    
+    TradesTable -.-> T1_Trades
+    TradesTable -.-> T2_Trades
+    TenantUsersTable -.-> T1_Users
+    TenantUsersTable -.-> T2_Users
+```
+
+### 4.2 Data Isolation Implementation
+
+**Row-Level Security (RLS) Policies:**
+
+**Core Principles:**
+1. Every tenant-scoped table includes a `tenant_id` column
+2. RLS policies automatically filter queries to current tenant
+3. Application middleware sets tenant context for each request
+4. Cross-tenant data access is impossible at database level
+
+**Sample RLS Policy:**
+```sql
+-- Enable RLS on trades table
+ALTER TABLE trades ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Users can only see trades from their tenant
+CREATE POLICY tenant_isolation ON trades
+  USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+
+-- Policy: Members can only edit their own trades
+CREATE POLICY member_trade_edit ON trades FOR UPDATE
+  USING (
+    tenant_id = current_setting('app.current_tenant_id')::UUID AND
+    user_id = current_setting('app.current_user_id')::UUID
+  );
+```
+
+**Application-Level Enforcement:**
+1. Authentication middleware extracts tenant ID from JWT
+2. Tenant context set before each database query
+3. Role-based checks before sensitive operations
+4. Audit logging for all cross-tenant access attempts
+
+### 4.3 Scaling Considerations
+
+**Current Approach (MVP):**
+- Single PostgreSQL database with RLS
+- All tenants share the same schema
+- Cost-effective for early stage
+- Simple backup and maintenance
+
+**Future Scaling Options:**
+
+**Database Sharding:**
+```mermaid
+graph LR
+    Router[🎯 Shard Router] --> Shard1[(Tenants 1-1000)]
+    Router --> Shard2[(Tenants 1001-2000)]
+    Router --> Shard3[(Tenants 2001-3000)]
+    
+    subgraph "Shard Management"
+        Lookup[🔍 Shard Lookup Service]
+        Migrator[🚚 Data Migrator]
+    end
+    
+    Router --> Lookup
+    Lookup --> Router
+```
+
+**Hybrid Approach:**
+- **Small Tenants**: Remain in shared database
+- **Enterprise Tenants**: Migrate to dedicated database
+- **Geographic Distribution**: Database replicas in different regions
+- **Read Replicas**: Separate analytics queries from transactional workloads
+
+## 5. Data Model & Database Design
+
+### 5.1 Core Entity Relationships
+
+```mermaid
+erDiagram
+    users {
+        uuid id PK
+        string email UK
+        string password_hash
+        string name
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    tenants {
+        uuid id PK
+        string name
+        string slug UK
+        string plan
+        jsonb settings
+        timestamp created_at
+    }
+    
+    tenant_users {
+        uuid id PK
+        uuid tenant_id FK
+        uuid user_id FK
+        string role
+        timestamp joined_at
+    }
+    
+    trades {
+        uuid id PK
+        uuid tenant_id FK
+        uuid user_id FK
+        string symbol
+        string side
+        decimal entry_price
+        decimal exit_price
+        integer quantity
+        decimal pnl
+        timestamp entry_timestamp
+        timestamp exit_timestamp
+        text notes
+        timestamp created_at
+    }
+    
+    tags {
+        uuid id PK
+        uuid tenant_id FK
+        string name
+        string color
+    }
+    
+    uploads {
+        uuid id PK
+        uuid tenant_id FK
+        uuid trade_id FK
+        string url
+        string storage_key
+        integer size_bytes
+    }
+    
+    subscriptions {
+        uuid id PK
+        uuid tenant_id FK UK
+        string plan
+        string status
+        timestamp current_period_end
+    }
+    
+    users ||--o{ tenant_users : "belongs to"
+    tenants ||--o{ tenant_users : "has members"
+    tenants ||--o{ trades : "contains"
+    tenants ||--o{ tags : "owns"
+    tenants ||--o{ uploads : "stores"
+    tenants ||--|| subscriptions : "has"
+    users ||--o{ trades : "creates"
+    trades }|--|| users : "created by"
+    trades }o--o{ tags : "tagged with"
+    trades ||--o{ uploads : "has attachments"
+```
+
+### 5.2 Key Tables Description
+
+**1. Users Table:**
+- Stores user credentials and profile information
+- Supports both email/password and OAuth authentication
+- Email verification and password reset workflows
+- Each user can belong to multiple tenants with different roles
+
+**2. Tenants Table:**
+- Represents a workspace/company account
+- Contains subscription plan and settings
+- Each tenant has one owner (user) and multiple members
+- Trial period and subscription status tracking
+
+**3. Trades Table:**
+- Core trading journal data with all transaction details
+- Generated columns for PnL calculations (avoid application-level errors)
+- Indexed for common query patterns (date ranges, symbols, performance)
+- Soft delete support with audit trail
+
+**4. Analytics Cache Table:**
+- Pre-computed metrics for dashboard performance
+- Aggregated by time period (daily, weekly, monthly)
+- Automatically invalidated when new trades are added
+- Redis-backed caching layer for frequently accessed data
+
+### 5.3 Database Performance Strategy
+
+**Indexing Strategy:**
+| Table | Index | Purpose | Type |
+|-------|-------|---------|------|
+| trades | (tenant_id, exit_timestamp) | Date range queries | B-tree |
+| trades | (tenant_id, symbol) | Symbol-specific analysis | B-tree |
+| trades | (tenant_id, user_id) | User performance breakdown | B-tree |
+| trades | (tenant_id, pnl DESC) WHERE pnl IS NOT NULL | Best/worst trades | Partial |
+| analytics_cache | (tenant_id, period, date) | Quick metric retrieval | Composite |
+
+**Partitioning Considerations:**
+- Trades table partitioned by `tenant_id` for large customers
+- Historical data moved to cold storage after 2 years
+- Time-series partitions for analytics data
+
+**Query Optimization:**
+- Materialized views for complex aggregations
+- Stored procedures for common calculations
+- Connection pooling with pgBouncer
+- Read replicas for analytics workloads
+
+## 6. Service Layer Architecture
+
+### 6.1 Core Services Overview
+
+```mermaid
+graph TB
+    subgraph "Business Services"
+        TradeService[💹 Trade Service]
+        AnalyticsService[📊 Analytics Service]
+        BillingService[💰 Billing Service]
+        ImportService[📁 Import Service]
+        EmailService[📧 Email Service]
+    end
+    
+    subgraph "Infrastructure Services"
+        CacheService[⚡ Cache Service]
+        StorageService[☁️ Storage Service]
+        QueueService[🔧 Queue Service]
+        AuthService[🔐 Auth Service]
+    end
+    
+    TradeService --> CacheService
+    TradeService --> QueueService
+    AnalyticsService --> CacheService
+    BillingService --> EmailService
+    ImportService --> TradeService
+    ImportService --> QueueService
+    EmailService --> QueueService
+    
+    CacheService --> Redis[(Redis)]
+    StorageService --> S3[(S3)]
+    QueueService --> BullMQ[BullMQ]
+    AuthService --> Redis
+```
+
+### 6.2 Service Responsibilities
+
+**Trade Service:**
+- **Trade CRUD Operations**: Create, read, update, delete trades with validation
+- **PnL Calculations**: Real-time profit/loss computation with fees
+- **Bulk Operations**: Import/export functionality for large datasets
+- **Tag Management**: Categorization and filtering of trades
+- **Audit Trail**: Track changes to trades for compliance
+
+**Analytics Service:**
+- **Performance Metrics**: Win rate, profit factor, expectancy, Sharpe ratio
+- **Equity Curve**: Cumulative PnL over time with drawdown calculation
+- **Breakdown Analysis**: Performance by symbol, strategy, time period
+- **Caching Layer**: Redis-based cache with automatic invalidation
+- **Report Generation**: PDF/CSV reports with customizable timeframes
+
+**Billing Service:**
+- **Subscription Management**: Plan upgrades/downgrades, trial periods
+- **Payment Processing**: Razorpay integration for Indian payments
+- **Usage Tracking**: Monitor trade counts and storage usage
+- **Invoice Generation**: Automated billing and receipt delivery
+- **Dunning Management**: Failed payment recovery workflows
+
+**Import Service:**
+- **CSV Parsing**: Flexible column mapping and validation
+- **Error Handling**: Detailed error reporting for failed imports
+- **Background Processing**: Large imports processed asynchronously
+- **Data Validation**: Business rule enforcement before insertion
+- **Progress Tracking**: Real-time import status updates
+
+## 7. API Layer Design
+
+### 7.1 REST API Structure
+
+```mermaid
+graph TD
+    Base[/api/v1] --> Auth
+    Base --> Trades
+    Base --> Analytics
+    Base --> Billing
+    Base --> Uploads
+    Base --> Webhooks
+    
+    subgraph "Authentication Endpoints"
+        Auth[🔐 /auth]
+        Auth --> Register[POST /register]
+        Auth --> Login[POST /login]
+        Auth --> Refresh[POST /refresh]
+        Auth --> Logout[POST /logout]
+        Auth --> Google[GET /google/callback]
+    end
+    
+    subgraph "Trade Management"
+        Trades[💹 /trades]
+        Trades --> List[GET /]
+        Trades --> Create[POST /]
+        Trades --> Get[GET /:id]
+        Trades --> Update[PUT /:id]
+        Trades --> Delete[DELETE /:id]
+        Trades --> Import[POST /import]
+        Trades --> Export[GET /export]
+    end
+    
+    subgraph "Analytics Endpoints"
+        Analytics[📊 /analytics]
+        Analytics --> Summary[GET /summary]
+        Analytics --> EquityCurve[GET /equity-curve]
+        Analytics --> Breakdown[GET /breakdown]
+        Analytics --> Statistics[GET /statistics]
+    end
+    
+    subgraph "Billing Endpoints"
+        Billing[💰 /billing]
+        Billing --> Subscription[GET /subscription]
+        Billing --> Checkout[POST /checkout]
+        Billing --> Invoices[GET /invoices]
+    end
+    
+    subgraph "Upload Endpoints"
+        Uploads[📁 /uploads]
+        Uploads --> Presign[POST /presign]
+        Uploads --> Confirm[POST /:id/confirm]
+    end
+    
+    subgraph "Webhook Endpoints"
+        Webhooks[🌐 /webhooks]
+        Webhooks --> Razorpay[POST /razorpay]
+    end
+```
+
+### 7.2 API Design Principles
+
+**Versioning:**
+- URL-based versioning (`/api/v1/`, `/api/v2/`)
+- Backward compatibility within major versions
+- Deprecation notices for upcoming breaking changes
+
+**Response Format:**
+```json
+{
+  "data": {
+    "id": "trade_123",
+    "symbol": "AAPL",
+    "side": "BUY",
+    "entryPrice": 175.50,
+    "exitPrice": 182.30,
+    "pnl": 680.00
+  },
+  "meta": {
+    "requestId": "req_abc123",
+    "timestamp": "2025-12-10T10:30:00Z"
+  },
+  "links": {
+    "self": "/api/v1/trades/trade_123",
+    "related": "/api/v1/trades"
+  }
+}
+```
+
+**Error Handling:**
+```json
+{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid trade data provided",
+    "details": [
+      {
+        "field": "entryPrice",
+        "message": "Must be a positive number"
+      }
+    ]
+  },
+  "meta": {
+    "requestId": "req_abc123",
+    "timestamp": "2025-12-10T10:30:00Z",
+    "documentation": "https://docs.tradingjournal.com/errors/validation"
+  }
+}
+```
+
+### 7.3 Rate Limiting Strategy
+
+**Tiered Rate Limits:**
+| Plan | Requests/Hour | Concurrent | Burst |
+|------|---------------|------------|-------|
+| Free | 100 | 5 | 20 |
+| Pro | 1,000 | 20 | 100 |
+| Enterprise | 10,000 | 100 | 500 |
+
+**Implementation:**
+- Redis-backed rate limiting with sliding windows
+- Different limits per endpoint category (auth vs data)
+- User-based limits to prevent abuse
+- IP-based fallback limits for unauthenticated endpoints
+
+## 8. Background Jobs & Queue System
+
+### 8.1 Job Processing Architecture
+
+```mermaid
+graph TB
+    API[🌐 API Server] -->|Queue Job| RedisQueue[(Redis Queue)]
+    
+    subgraph "Worker Cluster"
+        ImportWorker[📁 Import Worker]
+        ExportWorker[📤 Export Worker]
+        AnalyticsWorker[📊 Analytics Worker]
+        EmailWorker[📧 Email Worker]
+        ReportWorker[📄 Report Worker]
+    end
+    
+    RedisQueue --> ImportWorker
+    RedisQueue --> ExportWorker
+    RedisQueue --> AnalyticsWorker
+    RedisQueue --> EmailWorker
+    RedisQueue --> ReportWorker
+    
+    ImportWorker -->|Process| DB[(PostgreSQL)]
+    ExportWorker -->|Generate| S3[(S3 Storage)]
+    AnalyticsWorker -->|Calculate| DB
+    EmailWorker -->|Send| EmailService[📧 Email Service]
+    ReportWorker -->|Create| S3
+    
+    subgraph "Monitoring"
+        Dashboard[📈 Queue Dashboard]
+        Alerts[⚠️ Alert System]
+        Metrics[📊 Performance Metrics]
+    end
+    
+    WorkerCluster --> Dashboard
+    WorkerCluster --> Alerts
+    WorkerCluster --> Metrics
+```
+
+### 8.2 Job Types & Processing
+
+**Import Jobs:**
+- **CSV Import**: Parse and validate trade data from CSV files
+- **Data Validation**: Business rule enforcement and error reporting
+- **Batch Processing**: Insert trades in batches for performance
+- **Progress Tracking**: Real-time updates for large imports
+- **Notification**: Email upon completion or failure
+
+**Analytics Jobs:**
+- **Daily Recalculation**: Update cached metrics overnight
+- **Report Generation**: Create PDF reports for email delivery
+- **Data Aggregation**: Pre-calculate complex statistics
+- **Cache Warming**: Prepare data for peak usage times
+
+**Email Jobs:**
+- **Welcome Series**: New user onboarding emails
+- **Weekly Reports**: Performance summaries for active traders
+- **Billing Notifications**: Invoice and payment reminders
+- **System Alerts**: Important account notifications
+
+### 8.3 Queue Management
+
+**Priority Queues:**
+1. **High Priority**: Real-time notifications, billing operations
+2. **Medium Priority**: User-initiated exports, report generation
+3. **Low Priority**: Background analytics, data cleanup
+
+**Retry Strategy:**
+- **Immediate Retry**: For transient failures (3 attempts)
+- **Delayed Retry**: For resource constraints (1 hour delay)
+- **Exponential Backoff**: For external service failures
+- **Dead Letter Queue**: For permanently failed jobs
+
+**Monitoring & Alerting:**
+- Queue length monitoring with alert thresholds
+- Job processing time tracking
+- Worker health checks and auto-restart
+- Failed job analysis and reporting
+
+## 9. File Storage & Upload System
+
+### 9.1 Upload Flow Architecture
+
+```mermaid
+sequenceDiagram
+    participant User as 👤 User
+    participant Frontend as 💻 Frontend
+    participant Backend as ⚙️ Backend
+    participant S3 as ☁️ AWS S3
+    participant DB as 🗄️ Database
+    
+    Note over User,DB: Step 1: Request Upload Permission
+    User->>Frontend: Select file to upload
+    Frontend->>Backend: POST /uploads/presign
+    Backend->>Backend: Validate file type/size
+    Backend->>DB: Create upload record
+    Backend->>S3: Generate presigned URL
+    Backend-->>Frontend: Presigned URL + upload ID
+    
+    Note over User,DB: Step 2: Direct S3 Upload
+    Frontend->>S3: PUT file (direct upload)
+    S3-->>Frontend: Upload success
+    
+    Note over User,DB: Step 3: Confirm Upload
+    Frontend->>Backend: POST /uploads/:id/confirm
+    Backend->>DB: Update upload status
+    Backend->>Backend: Process file if needed
+    Backend-->>Frontend: File URL
+    
+    Note over User,DB: Step 4: Associate with Trade
+    Frontend->>Backend: PATCH /trades/:id (add attachment)
+    Backend->>DB: Link upload to trade
+    Backend-->>Frontend: Updated trade
+```
+
+### 9.2 Storage Architecture
+
+**File Organization:**
+```
+s3://trading-journal/
+├── uploads/
+│   ├── tenant_abc123/
+│   │   ├── trades/
+│   │   │   ├── trade_001/
+│   │   │   │   ├── chart.png
+│   │   │   │   └── screenshot.jpg
+│   │   │   └── trade_002/
+│   │   ├── imports/
+│   │   │   └── import_2025-12.csv
+│   │   └── exports/
+│   │       └── report_2025-12.pdf
+│   └── tenant_def456/
+└── system/
+    ├── templates/
+    └── assets/
+```
+
+**Security Measures:**
+- **Presigned URLs**: Time-limited upload/download URLs
+- **Bucket Policies**: Deny public access by default
+- **Encryption**: SSE-S3 encryption at rest
+- **Access Logging**: Audit trail for all S3 operations
+- **Virus Scanning**: ClamAV integration for uploads
+
+**Lifecycle Management:**
+- **Hot Storage**: Recent files (last 90 days)
+- **Warm Storage**: Older files (90 days - 2 years)
+- **Cold Storage**: Archived files (2+ years)
+- **Auto-deletion**: Temporary files after 7 days
+
+## 10. Billing & Subscription System
+
+### 10.1 Subscription Architecture
+
+```mermaid
+graph TB
+    User[👤 User] --> Frontend
+    Frontend[💻 Frontend] --> Checkout[💰 Checkout Page]
+    Checkout --> Razorpay[💳 Razorpay Checkout]
+    
+    subgraph "Payment Flow"
+        Razorpay -->|Payment Success| Webhook
+        Webhook[🌐 Webhook Endpoint] --> Backend
+        Backend[⚙️ Backend] -->|Verify Signature| Validation
+        Validation[✓ Signature Validation] -->|Valid| Processing
+        Processing[🔧 Process Payment] --> DB[(Database)]
+        Processing --> Email[📧 Send Confirmation]
+    end
+    
+    subgraph "Subscription Management"
+        Cron[⏰ Scheduled Jobs] --> UsageCheck[📊 Usage Check]
+        UsageCheck --> LimitEnforcement[🚫 Enforce Limits]
+        LimitEnforcement --> Notification[📢 Notify User]
+        
+        Cron --> RenewalCheck[🔄 Renewal Check]
+        RenewalCheck --> PaymentCollection[💰 Collect Payment]
+        PaymentCollection --> FailedPayment[⚠️ Handle Failure]
+    end
+    
+    subgraph "Plan Features"
+        Free[🎯 Free Plan]
+        Pro[🚀 Pro Plan]
+        Enterprise[🏢 Enterprise Plan]
+    end
+    
+    DB --> Free
+    DB --> Pro
+    DB --> Enterprise
+```
+
+### 10.2 Pricing Tiers & Features
+
+**Free Plan (₹0/month):**
+- 50 trades per month
+- Basic analytics dashboard
+- CSV import/export
+- Email support
+- 100MB storage
+
+**Pro Plan (₹499/month):**
+- 500 trades per month
+- Advanced analytics with equity curves
+- Team collaboration (5 members)
+- PDF report generation
+- 1GB storage
+- Priority support
+
+**Enterprise Plan (₹1,999/month):**
+- Unlimited trades
+- Unlimited team members
+- Custom reports
+- API access
+- Dedicated support
+- 10GB storage
+- White-label options
+
+### 10.3 Payment Integration
+
+**Razorpay Features:**
+- **Subscription Management**: Recurring billing with free trials
+- **Indian Payment Methods**: UPI, NetBanking, Cards, Wallets
+- **Smart Collect**: Virtual account numbers for bank transfers
+- **Webhook Support**: Real-time payment notifications
+- **Dashboard**: Merchant portal for transaction management
+
+**Payment Flow:**
+1. User selects plan on billing page
+2. Backend creates Razorpay subscription
+3. User redirected to Razorpay checkout
+4. Payment processed by Razorpay
+5. Webhook notification to our backend
+6. Subscription activated in our database
+7. Confirmation email sent to user
+
+**Failed Payment Handling:**
+- 3-day grace period for payment retry
+- Automated reminder emails
+- Plan downgrade after 7 days of non-payment
+- Data retention for 30 days post-cancellation
+
+## 11. Monitoring, Logging & Observability
+
+### 11.1 Observability Stack
+
+```mermaid
+graph TB
+    subgraph "Application Layer"
+        API[🌐 API Server]
+        Workers[🔧 Background Workers]
+        DB[(🗄️ Database)]
+        Redis[(⚡ Redis)]
+    end
+    
+    subgraph "Logging Pipeline"
+        API -->|Structured Logs| Loki[📝 Loki]
+        Workers -->|Structured Logs| Loki
+        Loki --> Grafana[📈 Grafana]
+    end
+    
+    subgraph "Metrics Collection"
+        API -->|Prometheus Metrics| Prometheus[📊 Prometheus]
+        Workers -->|Prometheus Metrics| Prometheus
+        DB -->|Query Metrics| Prometheus
+        Redis -->|Performance Metrics| Prometheus
+        Prometheus --> Grafana
+    end
+    
+    subgraph "Error Tracking"
+        API -->|Errors| Sentry[⚠️ Sentry]
+        Workers -->|Errors| Sentry
+        Frontend -->|Client Errors| Sentry
+        Sentry -->|Alerts| Slack[💬 Slack]
+    end
+    
+    subgraph "Tracing"
+        API -->|Traces| Jaeger[🔍 Jaeger]
+        Workers -->|Traces| Jaeger
+        Jaeger --> Grafana
+    end
+    
+    subgraph "Alerting"
+        Prometheus -->|Alert Rules| AlertManager[🚨 AlertManager]
+        AlertManager -->|Notifications| Slack
+        AlertManager -->|Critical Alerts| PagerDuty[📱 PagerDuty]
+    end
+    
+    subgraph "Dashboards"
+        Grafana --> BizDashboard[📈 Business Metrics]
+        Grafana --> SysDashboard[⚙️ System Health]
+        Grafana --> PerfDashboard[⚡ Performance]
+        Grafana --> ErrorDashboard[⚠️ Errors]
+    end
+```
+
+### 11.2 Key Metrics & Alerts
+
+**Business Metrics:**
+- **User Growth**: New signups, active users, retention rate
+- **Revenue Metrics**: MRR, ARR, churn rate, LTV
+- **Product Usage**: Trades logged, reports generated, storage used
+- **Conversion Funnel**: Signup → Activation → Payment
+
+**System Metrics:**
+- **API Performance**: Response times, error rates, throughput
+- **Database Health**: Connection pool, query performance, replication lag
+- **Cache Performance**: Hit rates, memory usage, eviction rates
+- **Queue Health**: Job backlog, processing times, failure rates
+
+**Alerting Rules:**
+- **Critical**: Service downtime, payment failures, data corruption
+- **Warning**: Performance degradation, high error rates, capacity limits
+- **Info**: Feature usage, user behavior changes, business milestones
+
+### 11.3 Logging Strategy
+
+**Log Levels:**
+- **ERROR**: System failures, data corruption, security incidents
+- **WARN**: Degraded performance, deprecated feature usage
+- **INFO**: Business transactions, user actions, system events
+- **DEBUG**: Detailed troubleshooting, request/response dumps
+
+**Structured Logging:**
+```json
+{
+  "timestamp": "2025-12-10T10:30:00Z",
+  "level": "INFO",
+  "message": "Trade created successfully",
+  "service": "trade-service",
+  "requestId": "req_abc123",
+  "userId": "user_123",
+  "tenantId": "tenant_456",
+  "tradeId": "trade_789",
+  "duration": 125,
+  "symbol": "AAPL",
+  "pnl": 680.50
+}
+```
+
+**Log Retention:**
+- **Debug logs**: 7 days
+- **Info logs**: 30 days
+- **Warn/Error logs**: 1 year
+- **Audit logs**: 7 years (compliance)
+
+## 12. Deployment Strategy
+
+### 12.1 Infrastructure Architecture
+
+```mermaid
+graph TB
+    subgraph "Production Environment"
+        DNS[🌐 Cloudflare DNS] --> LB[🔀 Load Balancer]
+        
+        subgraph "Frontend Cluster"
+            FE1[📱 Next.js App]
+            FE2[📱 Next.js App]
+            FE3[📱 Next.js App]
+        end
+        
+        subgraph "Backend Cluster"
+            API1[⚙️ API Server]
+            API2[⚙️ API Server]
+            API3[⚙️ API Server]
+        end
+        
+        subgraph "Worker Cluster"
+            W1[🔧 Worker]
+            W2[🔧 Worker]
+            W3[🔧 Worker]
+        end
+        
+        LB --> FE1
+        LB --> FE2
+        LB --> FE3
+        FE1 --> API1
+        FE2 --> API2
+        FE3 --> API3
+        
+        subgraph "Data Layer"
+            PrimaryDB[(Primary DB)]
+            ReplicaDB[(Read Replica)]
+            Cache[(Redis)]
+            Storage[(S3)]
+        end
+        
+        API1 --> PrimaryDB
+        API2 --> PrimaryDB
+        API3 --> PrimaryDB
+        W1 --> PrimaryDB
+        W2 --> PrimaryDB
+        W3 --> PrimaryDB
+        
+        API1 --> ReplicaDB
+        API2 --> ReplicaDB
+        API3 --> ReplicaDB
+        
+        API1 --> Cache
+        API2 --> Cache
+        API3 --> Cache
+        
+        API1 --> Storage
+        W1 --> Storage
+    end
+    
+    subgraph "Staging Environment"
+        StagingLB[🔀 Staging LB] --> StagingAPI[⚙️ Staging API]
+        StagingAPI --> StagingDB[(Staging DB)]
+    end
+    
+    subgraph "CI/CD Pipeline"
+        GitHub[🐙 GitHub] --> Actions[⚡ GitHub Actions]
+        Actions --> Build[🔨 Build & Test]
+        Build --> DeployStaging[🚀 Deploy to Staging]
+        DeployStaging --> Tests[🧪 Automated Tests]
+        Tests --> DeployProd[🚀 Deploy to Production]
+    end
+```
+
+### 12.2 Deployment Environments
+
+**Development:**
+- Local development with Docker Compose
+- Hot reload for fast iteration
+- Mock external services for offline development
+- Database seeding with sample data
+
+**Staging:**
+- Mirrors production environment
+- Automated testing before deployment
+- Performance testing with realistic loads
+- Feature flag testing and validation
+
+**Production:**
+- Multi-region deployment for redundancy
+- Auto-scaling based on load
+- Blue-green deployment for zero downtime
+- Canary releases for risk mitigation
+
+### 12.3 CI/CD Pipeline
+
+**Build Stage:**
+1. **Code Quality**: Linting, type checking, security scanning
+2. **Unit Tests**: Component and utility function tests
+3. **Integration Tests**: API endpoint and database interaction tests
+4. **E2E Tests**: User journey testing with Playwright
+
+**Deploy Stage:**
+1. **Staging Deployment**: Automatic deployment to staging environment
+2. **Smoke Tests**: Basic functionality verification
+3. **Performance Tests**: Load testing with k6
+4. **Approval Gate**: Manual approval for production deployment
+5. **Production Deployment**: Zero-downtime deployment with health checks
+
+**Post-Deployment:**
+1. **Health Monitoring**: Verify all services are running
+2. **Error Monitoring**: Watch for increased error rates
+3. **Performance Monitoring**: Ensure response times are acceptable
+4. **Rollback Plan**: Automated rollback if issues detected
+
+## 13. Security Implementation
+
+### 13.1 Security Defense Layers
+
+```mermaid
+graph TB
+    subgraph "Network Layer"
+        WAF[🛡️ Web Application Firewall]
+        DDoS[🛡️ DDoS Protection]
+        TLS[🔒 TLS 1.3]
+    end
+    
+    subgraph "Application Layer"
+        Auth[🔐 Authentication]
+        RBAC[👥 Authorization]
+        Validation[✓ Input Validation]
+        RateLimit[🚫 Rate Limiting]
+    end
+    
+    subgraph "Data Layer"
+        Encryption[🔐 Encryption at Rest]
+        RLS[🔒 Row-Level Security]
+        Audit[📝 Audit Logging]
+        Backup[💾 Encrypted Backups]
+    end
+    
+    subgraph "Infrastructure"
+        Secrets[🔑 Secrets Management]
+        Patching[🔧 Security Patching]
+        Monitoring[👀 Security Monitoring]
+        Scanning[🔍 Vulnerability Scanning]
+    end
+    
+    Request[🌐 HTTP Request] --> WAF
+    WAF --> DDoS
+    DDoS --> TLS
+    TLS --> Auth
+    Auth --> RBAC
+    RBAC --> Validation
+    Validation --> RateLimit
+    RateLimit --> Encryption
+    Encryption --> RLS
+    RLS --> Audit
+    Audit --> Backup
+```
+
+### 13.2 Security Measures
+
+**Authentication Security:**
+- **JWT Signing**: RSA 256-bit keys for token signing
+- **Token Rotation**: Refresh tokens rotated on each use
+- **Session Management**: Redis-based session storage
+- **Password Policy**: Minimum 12 characters with complexity requirements
+- **Account Lockout**: Temporary lockout after failed attempts
+
+**Data Security:**
+- **Encryption at Rest**: AES-256 encryption for sensitive data
+- **Encryption in Transit**: TLS 1.3 for all communications
+- **Secure Headers**: HSTS, CSP, X-Frame-Options, X-XSS-Protection
+- **SQL Injection Prevention**: Parameterized queries via DrizzleORM
+- **XSS Protection**: Output encoding and Content Security Policy
+
+**Infrastructure Security:**
+- **Secrets Management**: AWS Secrets Manager for sensitive configuration
+- **Network Isolation**: Private subnets and security groups
+- **Access Control**: Principle of least privilege for IAM roles
+- **Security Scanning**: Regular vulnerability assessments
+- **Penetration Testing**: Annual third-party security audits
+
+### 13.3 Compliance & Privacy
+
+**GDPR Compliance:**
+- **Data Portability**: Export all user data in machine-readable format
+- **Right to Erasure**: Complete account deletion with 30-day recovery window
+- **Data Processing Agreement**: Contract with sub-processors
+- **Privacy by Design**: Data minimization and purpose limitation
+
+**Data Retention Policy:**
+- **Active Users**: Data retained indefinitely
+- **Inactive Users**: Data retained for 3 years
+- **Deleted Accounts**: Data purged after 30 days
+- **Backup Retention**: 30 days of daily backups
+
+**Incident Response:**
+1. **Detection**: Automated monitoring and alerting
+2. **Containment**: Isolate affected systems
+3. **Investigation**: Root cause analysis
+4. **Eradication**: Remove threat from environment
+5. **Recovery**: Restore normal operations
+6. **Post-mortem**: Documentation and process improvement
+
+## 14. Performance Optimization
+
+### 14.1 Performance Architecture
+
+```mermaid
+graph TB
+    subgraph "Client-Side Optimization"
+        CDN[🌐 CDN for Static Assets]
+        BrowserCache[💾 Browser Caching]
+        CodeSplitting[📦 Code Splitting]
+        LazyLoading[🔄 Lazy Loading]
+        ServiceWorker[⚡ Service Worker]
+    end
+    
+    subgraph "API Optimization"
+        ResponseCache[⚡ Response Caching]
+        QueryOptimization[🔍 Query Optimization]
+        ConnectionPool[🔗 Connection Pooling]
+        Compression[🗜️ Response Compression]
+        Pagination[📄 Smart Pagination]
+    end
+    
+    subgraph "Database Optimization"
+        Indexing[📇 Strategic Indexing]
+        MaterializedViews[🔍 Materialized Views]
+        ReadReplicas[👥 Read Replicas]
+        Partitioning[🗂️ Table Partitioning]
+        QueryCache[💾 Query Result Cache]
+    end
+    
+    subgraph "Background Optimization"
+        AsyncProcessing[🔄 Async Processing]
+        BatchOperations[📦 Batch Operations]
+        JobPrioritization[🎯 Job Prioritization]
+        ResourceScaling[📈 Auto-scaling]
+    end
+    
+    User[👤 User] --> CDN
+    CDN --> BrowserCache
+    BrowserCache --> CodeSplitting
+    CodeSplitting --> LazyLoading
+    LazyLoading --> ServiceWorker
+    
+    ServiceWorker --> ResponseCache
+    ResponseCache --> QueryOptimization
+    QueryOptimization --> ConnectionPool
+    ConnectionPool --> Compression
+    Compression --> Pagination
+    
+    Pagination --> Indexing
+    Indexing --> MaterializedViews
+    MaterializedViews --> ReadReplicas
+    ReadReplicas --> Partitioning
+    Partitioning --> QueryCache
+    
+    QueryCache --> AsyncProcessing
+    AsyncProcessing --> BatchOperations
+    BatchOperations --> JobPrioritization
+    JobPrioritization --> ResourceScaling
+```
+
+### 14.2 Performance Targets
+
+**Frontend Performance:**
+- **First Contentful Paint**: < 1.5 seconds
+- **Time to Interactive**: < 3 seconds
+- **Largest Contentful Paint**: < 2.5 seconds
+- **Cumulative Layout Shift**: < 0.1
+- **First Input Delay**: < 100 milliseconds
+
+**API Performance:**
+- **P50 Response Time**: < 100 milliseconds
+- **P95 Response Time**: < 250 milliseconds
+- **P99 Response Time**: < 500 milliseconds
+- **API Availability**: 99.95%
+- **Error Rate**: < 0.1%
+
+**Database Performance:**
+- **Query Response Time**: < 50 milliseconds (p95)
+- **Connection Pool Usage**: < 80% capacity
+- **Cache Hit Ratio**: > 95%
+- **Replication Lag**: < 100 milliseconds
+
+### 14.3 Optimization Strategies
+
+**Caching Strategy:**
+| Cache Layer | TTL | Invalidation | Use Case |
+|-------------|-----|--------------|----------|
+| **Browser** | 1 year | Version-based | Static assets, JS/CSS |
+| **CDN** | 1 hour | Purge API | Images, reports |
+| **Redis** | 5 minutes | On data change | API responses, user sessions |
+| **Database** | 1 hour | Scheduled | Materialized views, aggregates |
+
+**Database Optimization:**
+- **Indexing**: Composite indexes for common query patterns
+- **Query Planning**: Analyze and optimize slow queries
+- **Connection Pooling**: pgBouncer for connection management
+- **Read Replicas**: Separate analytics queries from transactions
+- **Partitioning**: Time-based partitioning for large tables
+
+**Frontend Optimization:**
+- **Code Splitting**: Route-based and component-based splitting
+- **Image Optimization**: WebP format with responsive sizing
+- **Bundle Analysis**: Regular bundle size monitoring
+- **Critical CSS**: Inline critical CSS for faster rendering
+- **Prefetching**: Predictive loading of likely-needed resources
+
+## 15. Disaster Recovery & Business Continuity
+
+### 15.1 Disaster Recovery Architecture
+
+```mermaid
+graph TB
+    subgraph "Primary Region - Mumbai"
+        PrimaryApp[⚙️ Primary Application]
+        PrimaryDB[(Primary Database)]
+        PrimaryCache[(Primary Redis)]
+        PrimaryStorage[(Primary S3)]
+    end
+    
+    subgraph "Secondary Region - Singapore"
+        SecondaryApp[⚙️ Standby Application]
+        SecondaryDB[(Replica Database)]
+        SecondaryCache[(Replica Redis)]
+        SecondaryStorage[(Replica S3)]
+    end
+    
+    subgraph "Backup Storage"
+        DailyBackups[📅 Daily Backups]
+        WeeklyBackups[📅 Weekly Backups]
+        MonthlyBackups[📅 Monthly Backups]
+    end
+    
+    subgraph "Monitoring & Alerting"
+        HealthChecks[❤️ Health Checks]
+        FailoverDetection[⚠️ Failover Detection]
+        AutoRecovery[🔄 Auto Recovery]
+        Notification[📢 Notification System]
+    end
+    
+    PrimaryApp --> PrimaryDB
+    PrimaryApp --> PrimaryCache
+    PrimaryApp --> PrimaryStorage
+    
+    PrimaryDB -.->|Async Replication| SecondaryDB
+    PrimaryCache -.->|Redis Replication| SecondaryCache
+    PrimaryStorage -.->|Cross-region Replication| SecondaryStorage
+    
+    PrimaryDB --> DailyBackups
+    PrimaryDB --> WeeklyBackups
+    PrimaryDB --> MonthlyBackups
+    
+    HealthChecks --> PrimaryApp
+    HealthChecks --> PrimaryDB
+    FailoverDetection --> HealthChecks
+    AutoRecovery --> FailoverDetection
+    Notification --> AutoRecovery
+```
+
+### 15.2 Recovery Objectives
+
+**Recovery Time Objective (RTO):**
+- **Critical Systems**: < 15 minutes
+- **Core Services**: < 1 hour
+- **Non-critical Services**: < 4 hours
+- **Full Recovery**: < 8 hours
+
+**Recovery Point Objective (RPO):**
+- **User Data**: < 5 minutes
+- **Analytics Data**: < 1 hour
+- **System Logs**: < 15 minutes
+- **File Storage**: < 5 minutes
+
+### 15.3 Backup Strategy
+
+**Database Backups:**
+- **Continuous**: WAL archiving for point-in-time recovery
+- **Daily**: Full backups with 30-day retention
+- **Weekly**: Weekly backups with 3-month retention
+- **Monthly**: Monthly backups with 1-year retention
+- **Annual**: Yearly archives with 7-year retention
+
+**File Storage Backups:**
+- **Versioning**: S3 versioning for all uploaded files
+- **Replication**: Cross-region replication for disaster recovery
+- **Lifecycle**: Automated tiering to Glacier for older files
+- **Validation**: Regular backup integrity checks
+
+**Recovery Procedures:**
+1. **Failover Detection**: Automated health checks and alerting
+2. **DNS Switch**: Route traffic to secondary region
+3. **Database Promotion**: Promote replica to primary
+4. **Service Restoration**: Start services in recovery region
+5. **Data Sync**: Catch up any missed data
+6. **Validation**: Verify system functionality
+7. **Communication**: Notify users of service restoration
 
 ---
 
 ## Executive Summary
 
-This System Design Document outlines the architecture, components, data flows, and implementation strategy for the Trading Journal application—a platform enabling traders to log, analyze, and optimize their trading performance.
+The Trading Journal SaaS application is designed as a modern, scalable platform for traders to track, analyze, and optimize their trading performance. Built with a microservices-inspired architecture using Next.js, Express.js, and PostgreSQL, the system emphasizes security, performance, and maintainability.
 
-**Tech Stack:** Node.js (TypeScript), Next.js, PostgreSQL (Neon), DrizzleORM, Redis, S3-compatible storage, Razorpay, GitHub Actions, Vercel/Render
+### Key Architectural Decisions:
 
----
+1. **Multi-tenancy with RLS**: PostgreSQL Row-Level Security provides robust data isolation while maintaining operational simplicity.
 
-## Table of Contents
+2. **JWT with Refresh Token Rotation**: Secure authentication with automatic token refresh and protection against token theft.
 
-1. [Architecture Overview](#1-architecture-overview)
-2. [Component Responsibilities](#2-component-responsibilities)
-3. [Data Model](#3-data-model)
-4. [Multi-Tenancy Design](#4-multi-tenancy-design)
-5. [Authentication & Authorization](#5-authentication--authorization)
-6. [API Design](#6-api-design)
-7. [Analytics & Performance](#7-analytics--performance)
-8. [File Storage](#8-file-storage)
-9. [Billing & Subscriptions](#9-billing--subscriptions)
-10. [Scalability Strategy](#10-scalability-strategy)
-11. [Observability](#11-observability)
-12. [Security & Compliance](#12-security--compliance)
-13. [Deployment Strategy](#13-deployment-strategy)
-14. [Implementation Roadmap](#14-implementation-roadmap)
-15. [Risk Assessment](#15-risk-assessment)
+3. **Background Processing**: BullMQ with Redis handles heavy operations like CSV imports and report generation asynchronously.
 
----
+4. **Direct S3 Uploads**: Presigned URLs allow secure, scalable file uploads without burdening application servers.
 
-## 1. Architecture Overview
+5. **Tiered Caching**: Multi-layer caching strategy from browser to database ensures optimal performance.
 
-### 1.1 System Architecture
+6. **Comprehensive Observability**: Structured logging, distributed tracing, and real-time metrics provide full system visibility.
 
-The application follows a modern three-tier architecture with asynchronous processing capabilities:
+7. **Infrastructure as Code**: Automated deployment with CI/CD pipelines ensures consistent, repeatable environments.
 
-**Client Layer** → Next.js application with React components  
-**Application Layer** → Next.js API routes with authentication middleware  
-**Data Layer** → PostgreSQL database, Redis cache, S3 object storage  
-**Processing Layer** → BullMQ-powered background workers
+### Success Metrics:
+- **User Experience**: Sub-2 second page loads, intuitive navigation
+- **System Reliability**: 99.95% uptime, automated failover
+- **Security**: Zero critical vulnerabilities, GDPR compliance
+- **Scalability**: Support for 10,000+ concurrent users
+- **Business Growth**: Clear path from free to enterprise customers
 
-### 1.2 Architecture Diagram
-
-```mermaid
-    graph TB
-    Client[💻 Web Client<br/>Next.js App]
-    Server[⚙️ API Gateway<br/>Next.js Server]
-    Auth[🔐 Authentication<br/>Clerk/NextAuth]
-    DB[(🗄️ PostgreSQL<br/>Neon)]
-    Redis[(⚡ Redis<br/>Cache & Queue)]
-    Storage[☁️ S3 Storage<br/>Files & Assets]
-    Worker[🔧 Background Workers<br/>BullMQ]
-    
-    Client -->|HTTPS| Server
-    Server -->|Verify| Auth
-    Server -->|Query| DB
-    Server -->|Cache| Redis
-    Server -.->|Queue Jobs| Worker
-    Worker -.->|Process| DB
-    Client -->|Upload| Storage
-    Worker -.->|Generate| Storage
-        
-    
-```
-
-### 1.3 Key Architectural Decisions
-
-| Decision | Rationale |
-|----------|-----------|
-| **Monolithic Next.js App** | Simplified deployment, co-located frontend/backend, optimal for MVP |
-| **Single PostgreSQL Database** | Cost-effective, simpler migrations, RLS for tenant isolation |
-| **Redis for Caching & Queues** | High-performance caching and reliable job processing |
-| **Presigned Upload URLs** | Reduced server load, direct client-to-S3 transfers |
-| **Background Workers** | Async processing for imports, exports, and analytics |
+This architecture provides a solid foundation for rapid iteration while maintaining the robustness expected from a financial data application. The modular design allows for easy feature additions and third-party integrations as the platform evolves.
 
 ---
 
-## 2. Component Responsibilities
-
-### 2.1 Frontend (Next.js)
-
-**Pages & Features:**
-- Dashboard with key metrics and equity curve
-- Trade list with filtering, sorting, pagination
-- Trade detail and edit forms
-- Tag management interface
-- Settings and billing portal
-
-**Technical Responsibilities:**
-- Client-side validation with Zod schemas
-- Optimistic UI updates for better UX
-- File upload handling via presigned URLs
-- State management with React hooks/context
-- Responsive design with Tailwind CSS
-
-### 2.2 API Layer
-
-**Structure:**
-```
-/api/v1/
-  ├── auth/           # Authentication endpoints
-  ├── trades/         # Trade CRUD operations
-  ├── tags/           # Tag management
-  ├── analytics/      # Performance metrics
-  ├── uploads/        # File upload handling
-  ├── billing/        # Subscription management
-  └── webhooks/       # External service integrations
-```
-
-**Responsibilities:**
-- Request validation and sanitization
-- Authentication and authorization
-- Business logic orchestration
-- Response formatting
-- Error handling and logging
-
-### 2.3 Service Layer
-
-**Core Services:**
-- **TradeService:** PnL calculations, trade validation, CRUD operations
-- **AnalyticsService:** Statistics computation, equity curves, performance metrics
-- **ImportService:** CSV parsing, data validation, bulk inserts
-- **ExportService:** PDF/CSV report generation
-- **UploadService:** Presigned URL generation, metadata storage
-
-### 2.4 Data Access Layer
-
-**DrizzleORM Integration:**
-- Type-safe database queries
-- Schema-driven migrations
-- Transaction support
-- Query builder for complex analytics
-
-### 2.5 Background Workers
-
-**Job Types:**
-- CSV import processing (large files)
-- Report generation (PDF/Excel)
-- Stats cache regeneration
-- Scheduled email reports
-- Webhook retry logic
-
----
-
-## 3. Data Model
-
-### 3.1 Core Entities
-
-#### Users
-```typescript
-{
-  id: uuid (PK)
-  email: string (unique)
-  name: string
-  password_hash: string (nullable, if using OAuth)
-  identity_provider: string (nullable)
-  created_at: timestamp
-  updated_at: timestamp
-}
-```
-
-#### Tenants
-```typescript
-{
-  id: uuid (PK)
-  name: string
-  owner_user_id: uuid (FK → users)
-  created_at: timestamp
-}
-```
-
-#### Trades
-```typescript
-{
-  id: uuid (PK)
-  tenant_id: uuid (FK → tenants)
-  user_id: uuid (FK → users)
-  symbol: string (indexed)
-  side: enum('long', 'short')
-  entry_price: decimal(12,4)
-  exit_price: decimal(12,4)
-  quantity: decimal(12,4)
-  fees: decimal(10,2)
-  pnl: decimal(12,2) (computed)
-  entry_timestamp: timestamp (indexed)
-  exit_timestamp: timestamp (indexed)
-  notes: text
-  created_at: timestamp
-  updated_at: timestamp
-}
-```
-
-#### Tags
-```typescript
-{
-  id: uuid (PK)
-  tenant_id: uuid (FK → tenants)
-  name: string
-  color: string
-  created_at: timestamp
-}
-```
-
-#### Trade_Tags (Junction Table)
-```typescript
-{
-  trade_id: uuid (FK → trades)
-  tag_id: uuid (FK → tags)
-  PRIMARY KEY (trade_id, tag_id)
-}
-```
-
-#### Uploads
-```typescript
-{
-  id: uuid (PK)
-  tenant_id: uuid (FK → tenants)
-  trade_id: uuid (FK → trades, nullable)
-  url: string
-  storage_key: string
-  mime_type: string
-  size_bytes: integer
-  created_at: timestamp
-}
-```
-
-#### Subscriptions
-```typescript
-{
-  id: uuid (PK)
-  tenant_id: uuid (FK → tenants)
-  razorpay_customer_id: string
-  plan: enum('free', 'pro', 'enterprise')
-  status: enum('active', 'cancelled', 'past_due')
-  current_period_start: timestamp
-  current_period_end: timestamp
-  created_at: timestamp
-}
-```
-
-#### Stats_Cache
-```typescript
-{
-  id: uuid (PK)
-  tenant_id: uuid (FK → tenants)
-  date_window: string (e.g., '2025-12', 'all')
-  total_trades: integer
-  winning_trades: integer
-  losing_trades: integer
-  win_rate: decimal(5,2)
-  avg_return: decimal(8,4)
-  total_pnl: decimal(12,2)
-  max_drawdown: decimal(8,4)
-  last_updated: timestamp
-}
-```
-
-### 3.2 Key Indexes
-
-```sql
-CREATE INDEX idx_trades_tenant_exit ON trades(tenant_id, exit_timestamp);
-CREATE INDEX idx_trades_tenant_symbol ON trades(tenant_id, symbol);
-CREATE INDEX idx_trades_pnl ON trades(tenant_id, pnl) WHERE exit_timestamp IS NOT NULL;
-CREATE INDEX idx_tags_tenant ON tags(tenant_id);
-```
-
-### 3.3 Entity Relationship Diagram
-
-```
-users 1--* tenants
-tenants 1--* trades
-tenants 1--* tags
-trades *--* tags (via trade_tags)
-trades 1--* uploads
-tenants 1--1 subscriptions
-```
-
----
-
-## 4. Multi-Tenancy Design
-
-### 4.1 Chosen Approach
-
-**Single Database + Shared Schema + Row-Level Security (RLS)**
-
-Every tenant-scoped table includes a `tenant_id` column. PostgreSQL RLS policies enforce data isolation at the database level.
-
-### 4.2 Implementation Strategy
-
-**Schema Pattern:**
-```sql
--- Example RLS policy
-ALTER TABLE trades ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY tenant_isolation ON trades
-  USING (tenant_id = current_setting('app.current_tenant_id')::uuid);
-```
-
-**Application Layer:**
-```typescript
-// Middleware sets tenant context
-app.use(async (req, res, next) => {
-  const tenantId = req.user.tenantId;
-  await db.execute(sql`SET app.current_tenant_id = ${tenantId}`);
-  next();
-});
-```
-
-### 4.3 Advantages
-
-✅ Simple migrations and schema management  
-✅ Cost-effective for early-stage SaaS  
-✅ Easy cross-tenant analytics for platform insights  
-✅ Database-level security guarantees
-
-### 4.4 Alternative Considered
-
-**Separate Database Per Tenant:**
-- Stronger isolation
-- Independent scaling
-- Higher operational complexity
-- Recommended for enterprise tier customers only
-
----
-
-## 5. Authentication & Authorization
-
-### 5.1 Authentication Flow
-
-**Recommended: Clerk.dev** (for faster SaaS launch)  
-**Alternative: NextAuth.js** (for full control)
-
-#### Token Strategy
-
-- **Access Token:** JWT, short-lived (15 minutes)
-- **Refresh Token:** HTTP-only cookie, 30-day expiry
-- **Storage:** Redis with key rotation
-
-#### Login Sequence
-
-```
-1. User submits credentials
-2. Server validates against DB/OAuth provider
-3. Generate JWT access token + refresh token
-4. Store refresh token in Redis with user mapping
-5. Return JWT to client, refresh token as HTTP-only cookie
-6. Client includes JWT in Authorization header
-7. On expiry, use refresh endpoint to get new JWT
-8. Logout revokes refresh token from Redis
-```
-
-### 5.2 Authorization Model
-
-**Role-Based Access Control (RBAC):**
-
-| Role | Permissions |
-|------|-------------|
-| **Owner** | Full tenant access, billing, user management |
-| **Admin** | All trading operations, view billing |
-| **Member** | Create/edit own trades, view shared analytics |
-| **Viewer** | Read-only access to trades and analytics |
-
-### 5.3 Security Measures
-
-- Argon2 password hashing (if self-implementing)
-- Rate limiting on auth endpoints (10 attempts/hour)
-- CSRF protection via SameSite cookies
-- MFA support (via Clerk or custom TOTP)
-- Session invalidation on password change
-
----
-
-## 6. API Design
-
-### 6.1 RESTful API Structure
-
-**Base URL:** `https://api.tradingjournal.com/v1`
-
-#### Authentication Endpoints
-
-```http
-POST /auth/register
-Content-Type: application/json
-
-{
-  "email": "trader@example.com",
-  "name": "John Doe",
-  "password": "SecurePass123!"
-}
-
-Response: 201 Created
-{
-  "user": { "id": "...", "email": "...", "name": "..." },
-  "accessToken": "eyJhbG..."
-}
-```
-
-```http
-POST /auth/login
-Content-Type: application/json
-
-{
-  "email": "trader@example.com",
-  "password": "SecurePass123!"
-}
-
-Response: 200 OK
-{
-  "accessToken": "eyJhbG..."
-}
-Set-Cookie: refreshToken=...; HttpOnly; Secure; SameSite=Strict
-```
-
-```http
-POST /auth/refresh
-Cookie: refreshToken=...
-
-Response: 200 OK
-{
-  "accessToken": "eyJhbG..."
-}
-```
-
-#### Trade Endpoints
-
-```http
-POST /trades
-Authorization: Bearer {accessToken}
-Content-Type: application/json
-
-{
-  "symbol": "AAPL",
-  "side": "long",
-  "entryPrice": 175.50,
-  "exitPrice": 182.30,
-  "quantity": 100,
-  "fees": 2.50,
-  "entryTimestamp": "2025-12-01T09:30:00Z",
-  "exitTimestamp": "2025-12-01T15:45:00Z",
-  "notes": "Strong earnings momentum",
-  "tags": ["earnings", "tech"]
-}
-
-Response: 201 Created
-{
-  "id": "...",
-  "pnl": 680.00,
-  ...
-}
-```
-
-```http
-GET /trades?from=2025-01-01&to=2025-12-31&symbol=AAPL&tag=earnings&win=true&page=1&limit=50
-Authorization: Bearer {accessToken}
-
-Response: 200 OK
-{
-  "items": [...],
-  "total": 127,
-  "page": 1,
-  "limit": 50
-}
-```
-
-```http
-GET /trades/{id}
-PUT /trades/{id}
-DELETE /trades/{id}
-```
-
-#### Analytics Endpoints
-
-```http
-GET /analytics/summary?from=2025-01-01&to=2025-12-31
-Authorization: Bearer {accessToken}
-
-Response: 200 OK
-{
-  "totalTrades": 245,
-  "winningTrades": 147,
-  "losingTrades": 98,
-  "winRate": 60.0,
-  "totalPnL": 12450.50,
-  "avgReturn": 2.3,
-  "maxDrawdown": -8.5,
-  "sharpeRatio": 1.8
-}
-```
-
-```http
-GET /analytics/equity?from=2025-01-01&to=2025-12-31&granularity=daily
-Authorization: Bearer {accessToken}
-
-Response: 200 OK
-{
-  "points": [
-    { "date": "2025-01-01", "equity": 10000.00 },
-    { "date": "2025-01-02", "equity": 10150.25 },
-    ...
-  ]
-}
-```
-
-#### Upload Endpoints
-
-```http
-POST /uploads/presign
-Authorization: Bearer {accessToken}
-Content-Type: application/json
-
-{
-  "filename": "trade-screenshot.png",
-  "mimeType": "image/png",
-  "tradeId": "..." // optional
-}
-
-Response: 200 OK
-{
-  "uploadUrl": "https://s3.amazonaws.com/...",
-  "fileUrl": "https://cdn.tradingjournal.com/...",
-  "storageKey": "uploads/..."
-}
-```
-
-### 6.2 API Design Principles
-
-- **Versioning:** URL-based (`/v1/`, `/v2/`)
-- **Validation:** Zod schemas at middleware layer
-- **Pagination:** Cursor-based for large datasets, offset for analytics
-- **Error Format:** RFC 7807 Problem Details
-- **Rate Limiting:** 1000 requests/hour per user, 100/hour for analytics
-
-### 6.3 Error Response Format
-
-```json
-{
-  "type": "https://api.tradingjournal.com/errors/validation",
-  "title": "Validation Error",
-  "status": 400,
-  "detail": "Invalid trade data provided",
-  "errors": [
-    {
-      "field": "entryPrice",
-      "message": "Must be a positive number"
-    }
-  ],
-  "requestId": "req_abc123xyz"
-}
-```
-
----
-
-## 7. Analytics & Performance
-
-### 7.1 Analytics Strategy
-
-**Hybrid Approach:**
-- **Real-time:** Simple queries with proper indexes
-- **Precomputed:** Complex aggregations cached in `stats_cache` table
-- **On-demand:** Background jobs regenerate heavy analytics
-
-### 7.2 Key Queries
-
-#### Equity Curve Calculation
-
-```sql
-SELECT 
-  exit_timestamp::date as date,
-  SUM(pnl) OVER (ORDER BY exit_timestamp::date) as cumulative_pnl
-FROM trades
-WHERE tenant_id = $1 
-  AND exit_timestamp BETWEEN $2 AND $3
-ORDER BY date;
-```
-
-#### Performance Metrics
-
-```sql
-WITH trade_stats AS (
-  SELECT
-    COUNT(*) as total_trades,
-    COUNT(*) FILTER (WHERE pnl > 0) as wins,
-    COUNT(*) FILTER (WHERE pnl < 0) as losses,
-    SUM(pnl) as total_pnl,
-    AVG(pnl) as avg_pnl,
-    STDDEV(pnl) as pnl_stddev
-  FROM trades
-  WHERE tenant_id = $1 
-    AND exit_timestamp BETWEEN $2 AND $3
-)
-SELECT 
-  *,
-  (wins::float / NULLIF(total_trades, 0) * 100) as win_rate,
-  (avg_pnl / NULLIF(pnl_stddev, 0)) as sharpe_ratio
-FROM trade_stats;
-```
-
-### 7.3 Caching Strategy
-
-**Redis Cache Layers:**
-
-| Layer | TTL | Invalidation |
-|-------|-----|--------------|
-| Summary stats | 5 minutes | On trade create/update/delete |
-| Daily equity | 1 hour | On trade modification for that day |
-| Monthly reports | 24 hours | Manual or scheduled |
-
-**Cache Key Pattern:**
-```
-analytics:{tenant_id}:{metric}:{date_range}:{filters_hash}
-```
-
-### 7.4 Performance Optimizations
-
-- **Partial Indexes:** For common filters (winning trades, specific symbols)
-- **Materialized Views:** For monthly/yearly aggregations
-- **Query Planner Hints:** For complex analytics
-- **Connection Pooling:** pgBouncer with transaction mode
-- **Read Replicas:** Route analytics queries to replicas
-
----
-
-## 8. File Storage
-
-### 8.1 Storage Architecture
-
-**Provider:** AWS S3 (primary) or Cloudinary (alternative)  
-**Use Cases:** Trade screenshots, CSV imports, generated reports
-
-### 8.2 Upload Flow
-
-```
-1. Client requests presigned URL from /uploads/presign
-2. Server validates request and generates S3 presigned PUT URL (5-min expiry)
-3. Server stores upload metadata in database with 'pending' status
-4. Client uploads file directly to S3 using presigned URL
-5. Client notifies server of upload completion
-6. Server updates upload status to 'completed'
-7. Optional: Background worker processes file (virus scan, thumbnail generation)
-```
-
-### 8.3 Security Measures
-
-- **File Validation:** MIME type verification, magic number checks
-- **Size Limits:** 5 MB for images, 20 MB for CSVs
-- **Access Control:** Signed URLs with short expiry for viewing
-- **Virus Scanning:** ClamAV integration for user uploads
-- **Content Policy:** Reject executables and archives
-
-### 8.4 Storage Organization
-
-```
-bucket-name/
-├── uploads/
-│   ├── {tenant_id}/
-│   │   ├── trades/
-│   │   │   └── {trade_id}/
-│   │   │       └── {uuid}.{ext}
-│   │   └── imports/
-│   │       └── {uuid}.csv
-│   └── reports/
-│       └── {tenant_id}/
-│           └── {year}/{month}/
-│               └── report-{date}.pdf
-```
-
-### 8.5 Lifecycle Policies
-
-- Archive trade images older than 2 years to Glacier
-- Delete temporary imports after 7 days
-- Retain reports for 1 year, then delete
-
----
-
-## 9. Billing & Subscriptions
-
-### 9.1 Pricing Tiers
-
-| Plan | Price | Trade Limit | Features |
-|------|-------|-------------|----------|
-| **Free** | ₹0/month | 50 trades/month | Basic analytics, 1 user |
-| **Pro** | ₹499/month | 500 trades/month | Advanced analytics, CSV import, 5 users |
-| **Enterprise** | Custom | Unlimited | White-label, API access, dedicated support |
-
-### 9.2 Razorpay Integration
-
-**Subscription Flow:**
-
-```
-1. User selects plan on billing page
-2. Frontend calls /billing/create-subscription
-3. Backend creates Razorpay subscription and returns checkout URL
-4. User completes payment on Razorpay checkout
-5. Razorpay sends webhook to /webhooks/razorpay
-6. Backend validates webhook signature
-7. Backend updates subscription status in database
-8. Backend sends confirmation email to user
-```
-
-**Webhook Events:**
-
-- `subscription.activated` → Enable premium features
-- `subscription.charged` → Record payment, extend period
-- `subscription.cancelled` → Downgrade to free plan
-- `payment.failed` → Send payment retry notification
-
-### 9.3 Usage Enforcement
-
-**Middleware Implementation:**
-
-```typescript
-async function enforcePlanLimits(req, res, next) {
-  const tenant = await getTenant(req.user.tenantId);
-  const subscription = await getSubscription(tenant.id);
-  
-  if (subscription.plan === 'free') {
-    const tradeCount = await getMonthlyTradeCount(tenant.id);
-    if (tradeCount >= 50) {
-      return res.status(403).json({
-        error: 'Monthly trade limit reached',
-        upgradeUrl: '/billing/upgrade'
-      });
-    }
-  }
-  
-  next();
-}
-```
-
-### 9.4 Billing Edge Cases
-
-- **Trial Period:** 14-day free trial with full Pro features
-- **Proration:** Calculate prorated charges on mid-cycle upgrades
-- **Grace Period:** 7-day grace period for failed payments
-- **Cancellation:** Retain data for 30 days post-cancellation
-
----
-
-## 10. Scalability Strategy
-
-### 10.1 Horizontal Scaling
-
-**Application Tier:**
-- Stateless Next.js server instances behind load balancer
-- Auto-scaling based on CPU (>70%) and request latency (>500ms)
-- Health check endpoint: `/health`
-
-**Worker Tier:**
-- BullMQ workers scaled independently
-- Scale based on queue backlog (>100 jobs triggers scale-up)
-- Graceful shutdown with job completion
-
-### 10.2 Database Scaling
-
-**Read Scaling:**
-- PostgreSQL read replicas for analytics queries
-- Connection pooling with pgBouncer
-- Query result caching in Redis
-
-**Write Scaling:**
-- Batch inserts for CSV imports
-- Async writes for non-critical data (audit logs)
-- Database sharding by `tenant_id` (future consideration)
-
-### 10.3 Caching Strategy
-
-**Cache Hierarchy:**
-
-```
-Browser Cache (static assets, 1 year)
-    ↓
-CDN Cache (images, reports, 1 week)
-    ↓
-Redis Cache (API responses, 5 min - 1 hour)
-    ↓
-Database (source of truth)
-```
-
-### 10.4 Performance Targets
-
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **Page Load Time** | <2 seconds | Lighthouse, Web Vitals |
-| **API Response Time (p95)** | <500ms | Application metrics |
-| **Background Job Processing** | <5 min | BullMQ metrics |
-| **Database Query Time (p99)** | <100ms | Slow query log |
-
-### 10.5 Load Testing
-
-**Target Capacity:**
-- 1,000 concurrent users
-- 10,000 requests/minute
-- 100 background jobs/minute
-
-**Tools:** Artillery, k6, or Apache JMeter
-
----
-
-## 11. Observability
-
-### 11.1 Logging Strategy
-
-**Structured Logging with Winston:**
-
-```typescript
-logger.info('Trade created', {
-  requestId: req.id,
-  userId: req.user.id,
-  tenantId: req.user.tenantId,
-  tradeId: trade.id,
-  symbol: trade.symbol,
-  duration: Date.now() - req.startTime
-});
-```
-
-**Log Levels:**
-- **ERROR:** Failures requiring immediate attention
-- **WARN:** Degraded functionality, retry events
-- **INFO:** Normal business operations
-- **DEBUG:** Detailed diagnostic information
-
-**Centralized Logging:** Ship logs to Datadog, Grafana Loki, or CloudWatch
-
-### 11.2 Error Tracking
-
-**Sentry Integration:**
-- Automatic error capture with source maps
-- User context (ID, tenant, plan)
-- Breadcrumbs for request flow
-- Custom tags for categorization
-
-**Alert Thresholds:**
-- Critical errors: >10/hour → PagerDuty alert
-- High error rate: >5% → Slack notification
-- Slow queries: >1s → Daily digest
-
-### 11.3 Metrics & Monitoring
-
-**Key Metrics (Prometheus format):**
-
-```
-http_requests_total{method, route, status}
-http_request_duration_seconds{method, route}
-database_connections{state}
-redis_commands_total{command}
-job_processing_duration_seconds{job_type}
-job_failures_total{job_type}
-subscription_events_total{event_type}
-```
-
-**Dashboards:**
-- System health (CPU, memory, disk)
-- Application performance (latency, throughput)
-- Business metrics (signups, trades created, revenue)
-- Error rates and types
-
-### 11.4 Alerting Rules
-
-```yaml
-- alert: HighErrorRate
-  expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
-  for: 5m
-  annotations:
-    summary: "High error rate detected"
-
-- alert: DatabaseConnectionPoolExhausted
-  expr: database_connections{state="idle"} < 2
-  for: 2m
-  annotations:
-    summary: "Database connection pool nearly exhausted"
-```
-
-### 11.5 Tracing
-
-**Distributed Tracing with OpenTelemetry:**
-- Trace request flow across services
-- Identify slow database queries
-- Visualize dependency chains
-- Correlate logs with traces
-
----
-
-## 12. Security & Compliance
-
-### 12.1 Transport Security
-
-- **TLS 1.3** for all connections
-- **HSTS** headers with `max-age=31536000`
-- **Certificate pinning** for mobile apps
-
-### 12.2 Data Security
-
-**Encryption:**
-- At rest: AES-256 for database and S3
-- In transit: TLS 1.3
-- Sensitive fields: Application-level encryption for notes (optional)
-
-**Secrets Management:**
-- AWS Secrets Manager or HashiCorp Vault
-- Automated rotation every 90 days
-- No secrets in code or environment variables
-
-### 12.3 Access Control
-
-**Principle of Least Privilege:**
-- Database users with minimal grants
-- API keys with scope restrictions
-- IAM roles for service-to-service auth
-
-**Row-Level Security:**
-```sql
-CREATE POLICY tenant_isolation ON trades
-  USING (tenant_id = current_setting('app.current_tenant_id')::uuid);
-```
-
-### 12.4 Input Validation
-
-**Defense in Depth:**
-- Client-side validation (fast feedback)
-- Zod schema validation (API layer)
-- Database constraints (last line of defense)
-- SQL injection prevention via parameterized queries
-
-### 12.5 Rate Limiting
-
-**Implementation:**
-
-```typescript
-// Redis-backed rate limiter
-const limiter = rateLimit({
-  store: new RedisStore({ client: redis }),
-  windowMs: 60 * 60 * 1000, // 1 hour
-  max: 1000, // requests per window
-  keyGenerator: (req) => req.user.id
-});
-```
-
-**Limits:**
-- Global: 10,000 req/hour per IP
-- Authenticated: 1,000 req/hour per user
-- Auth endpoints: 10 req/hour per IP
-
-### 12.6 GDPR Compliance
-
-**Data Subject Rights:**
-
-- **Right to Access:** `/api/v1/gdpr/export` endpoint
-- **Right to Erasure:** Cascade delete on user/tenant deletion
-- **Right to Portability:** JSON/CSV export of all data
-- **Right to Rectification:** Standard edit endpoints
-
-**Implementation:**
-
-```typescript
-async function exportUserData(userId: string) {
-  const data = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-    with: {
-      tenants: {
-        with: {
-          trades: true,
-          tags: true,
-          uploads: true
-        }
-      }
-    }
-  });
-  
-  return generateGDPRExport(data);
-}
-```
-
-### 12.7 Audit Logging
-
-**Audit Trail for Sensitive Operations:**
-
-```typescript
-auditLog.create({
-  tenantId: req.user.tenantId,
-  userId: req.user.id,
-  action: 'trade.delete',
-  resource: tradeId,
-  ipAddress: req.ip,
-  userAgent: req.headers['user-agent'],
-  timestamp: new Date()
-});
-```
-
-**Retention:** 1 year for free, 3 years for enterprise
-
-### 12.8 Security Testing
-
-**Regular Activities:**
-- **SAST:** SonarQube in CI/CD pipeline
-- **DAST:** OWASP ZAP quarterly scans
-- **Dependency Scanning:** Snyk/Dependabot weekly
-- **Penetration Testing:** Annual third-party audit
-
----
-
-## 13. Deployment Strategy
-
-### 13.1 Infrastructure
-
-**Environment Setup:**
-
-| Environment | Purpose | Database | Workers | Users |
-|-------------|---------|----------|---------|-------|
-| **Development** | Local dev | Local PostgreSQL | Disabled | Developers |
-| **Staging** | Pre-production | Neon (staging branch) | Enabled | QA team |
-| **Production** | Live system | Neon (production) | Auto-scaled | End users |
-
-### 13.2 CI/CD Pipeline
-
-**GitHub Actions Workflow:**
-
-```yaml
-name: Deploy
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Run tests
-        run: npm test
-      - name: Type check
-        run: npm run typecheck
-      - name: Lint
-        run: npm run lint
-
-  deploy-staging:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy to Vercel (staging)
-        run: vercel deploy --prod=false
-      - name: Run migrations
-        run: npm run migrate:staging
-      - name: Smoke tests
-        run: npm run test:e2e
-
-  deploy-production:
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - name: Deploy to Vercel (production)
-        run: vercel deploy --prod
-      - name: Run migrations
-        run: npm run migrate:production
-      - name: Notify team
-        run: slack-notify "Deployed v${{ github.sha }}"
-```
-
-### 13.3 Database Migrations
-
-**DrizzleORM Migration Process:**
-
-```bash
-# Generate migration
-npm run db:generate
-
-# Review migration file
-cat drizzle/0001_add_trades_table.sql
-
-# Apply to staging
-npm run db:migrate:staging
-
-# Apply to production
-npm run db:migrate:production
-
-# Rollback procedure
-npm run db:rollback
-```
-
-**Migration Safety Measures:**
-1. Always backup database before migration
-2. Test migrations on staging with production-like data
-3. Use transactional migrations (single transaction per migration)
-4. Include rollback scripts for every migration
-5. Monitor migration performance with timeout limits
-
-### 13.4 Deployment Topology
-
-**Vercel (Frontend + API):**
-- Automatic scaling
-- Edge functions for API routes
-- Global CDN for static assets
-- Automatic SSL certificates
-
-**Render (Background Workers):**
-- Separate service for BullMQ workers
-- Autoscaling based on queue length
-- Persistent Redis for job storage
-
-**Neon (PostgreSQL):**
-- Branching for staging/production
-- Point-in-time recovery
-- Read replicas for analytics
-
-**Upstash (Redis):**
-- Managed Redis with persistence
-- TLS encryption
-- Automatic backups
-
-### 13.5 Deployment Checklist
-
-**Pre-Deployment:**
-- [ ] All tests passing (unit, integration, E2E)
-- [ ] No critical security vulnerabilities
-- [ ] Performance test results within acceptable range
-- [ ] Database migration tested on staging
-- [ ] Rollback plan documented and tested
-
-**During Deployment:**
-- [ ] Deploy to staging, verify functionality
-- [ ] Run smoke tests on staging
-- [ ] Apply database migrations
-- [ ] Deploy to production with zero-downtime strategy
-- [ ] Enable feature flags gradually (if applicable)
-- [ ] Monitor error rates and performance metrics
-
-**Post-Deployment:**
-- [ ] Verify key user journeys
-- [ ] Monitor error rates for 1 hour
-- [ ] Send deployment notification to team
-- [ ] Update deployment documentation
-
----
-
-## 14. Implementation Roadmap
-
-### 14.1 Phase 1: MVP (Months 1-2)
-
-**Objective:** Functional trading journal for personal use
-
-**Core Features:**
-- User authentication (Clerk integration)
-- Trade CRUD operations
-- Basic PnL calculations
-- Tag system for trade categorization
-- Simple dashboard with win rate and total PnL
-
-**Technical Setup:**
-- [x] Project initialization with Next.js 14
-- [x] PostgreSQL database with Neon
-- [x] Authentication setup with Clerk
-- [x] DrizzleORM schema definitions
-- [ ] Basic API routes for trades and tags
-- [ ] Responsive UI with Tailwind CSS
-- [ ] Deployment pipeline to Vercel
-
-**Success Metrics:**
-- ✅ 10 daily active users (internal testers)
-- ✅ <100ms API response time for core endpoints
-- ✅ Zero critical bugs in production
-- ✅ 100% test coverage for core business logic
-
-### 14.2 Phase 2: Analytics & Reports (Months 3-4)
-
-**Objective:** Add advanced analytics and export capabilities
-
-**New Features:**
-- Advanced performance metrics (Sharpe ratio, max drawdown)
-- Equity curve visualization
-- CSV import/export functionality
-- PDF report generation
-- Trade filtering by date, symbol, tags
-
-**Technical Implementation:**
-- [ ] Analytics service with cached computations
-- [ ] BullMQ workers for background processing
-- [ ] S3 integration for file storage
-- [ ] Chart.js/Recharts integration for visualizations
-- [ ] CSV parsing with error handling
-- [ ] PDF generation with report templates
-
-**Success Metrics:**
-- ✅ 50 daily active users
-- ✅ 90% user satisfaction with analytics features
-- ✅ Report generation under 30 seconds
-- ✅ Import processing for 1000+ trades
-
-### 14.3 Phase 3: Multi-Tenancy SaaS (Months 5-6)
-
-**Objective:** Transform into multi-tenant SaaS platform
-
-**New Features:**
-- Team accounts with role-based access
-- Subscription plans with billing integration
-- Usage limits and enforcement
-- Tenant isolation with RLS
-- Admin dashboard for tenant management
-
-**Technical Implementation:**
-- [ ] Row-Level Security implementation
-- [ ] Razorpay subscription integration
-- [ ] Plan enforcement middleware
-- [ ] Tenant management dashboard
-- [ ] User invitation and management
-- [ ] Enhanced logging for multi-tenant environment
-
-**Success Metrics:**
-- ✅ First 10 paying customers
-- ✅ 99.9% uptime SLA
-- ✅ Successful handling of 100+ concurrent users
-- ✅ <2% payment failure rate
-
-### 14.4 Phase 4: Advanced Features (Months 7-9)
-
-**Objective:** Enterprise features and platform maturation
-
-**New Features:**
-- Webhook integrations with trading platforms
-- API access for developers
-- White-label options for enterprise
-- Advanced risk analytics
-- Mobile app (React Native)
-- Custom report builder
-
-**Technical Implementation:**
-- [ ] Webhook handling system
-- [ ] Public API with rate limiting
-- [ ] Theme customization engine
-- [ ] React Native mobile app
-- [ ] Advanced risk modeling service
-- [ ] Custom report builder with drag-and-drop interface
-
-**Success Metrics:**
-- ✅ 100+ paying customers
-- ✅ 99.99% uptime
-- ✅ <500ms p95 API response time
-- ✅ Successful integration with 5+ trading platforms
-
-### 14.5 Phase 5: Scale & Optimization (Months 10-12)
-
-**Objective:** Platform optimization and scaling for growth
-
-**Focus Areas:**
-- Performance optimization
-- Cost optimization
-- Internationalization
-- Advanced security features
-- Analytics platform for internal insights
-
-**Technical Implementation:**
-- [ ] Database sharding strategy
-- [ ] CDN optimization for global users
-- [ ] Multi-language support
-- [ ] Advanced security audit and penetration testing
-- [ ] Internal analytics dashboard for business metrics
-
-**Success Metrics:**
-- ✅ Support for 10,000+ concurrent users
-- ✅ 40% reduction in infrastructure costs
-- ✅ Expansion to 3+ languages
-- ✅ SOC 2 Type II certification
-
----
-
-## 15. Risk Assessment
-
-### 15.1 Technical Risks
-
-| Risk | Probability | Impact | Mitigation Strategy |
-|------|-------------|---------|-------------------|
-| **Database performance degradation** | Medium | High | Implement query optimization, caching strategy, and monitoring |
-| **Data loss** | Low | Critical | Regular backups (daily), point-in-time recovery, multi-region replication |
-| **Security breach** | Medium | Critical | Regular security audits, penetration testing, encryption at rest and in transit |
-| **Service downtime** | Low | High | Multi-region deployment, automated failover, health checks |
-| **Third-party service failure** | Medium | Medium | Circuit breaker pattern, fallback mechanisms, multiple provider options |
-
-### 15.2 Business Risks
-
-| Risk | Probability | Impact | Mitigation Strategy |
-|------|-------------|---------|-------------------|
-| **Low user adoption** | High | High | User research, feedback loops, referral programs, freemium model |
-| **Payment processing issues** | Medium | High | Multiple payment gateways, clear error messages, manual override capability |
-| **Competitor innovation** | High | Medium | Continuous feature development, focus on UX, community building |
-| **Regulatory changes** | Low | Medium | Legal counsel, flexible architecture, monitoring regulatory landscape |
-| **Data privacy compliance** | Medium | High | GDPR compliance from day 1, data minimization, clear privacy policy |
-
-### 15.3 Operational Risks
-
-| Risk | Probability | Impact | Mitigation Strategy |
-|------|-------------|---------|-------------------|
-| **Team member attrition** | Medium | Medium | Documentation, cross-training, modular codebase |
-| **Cost overruns** | High | Medium | Budget monitoring, cost alerts, serverless where possible |
-| **Feature creep** | High | Medium | Strict MVP focus, user feedback prioritization, roadmap transparency |
-| **Technical debt accumulation** | High | Medium | Regular refactoring sprints, code quality gates, automated testing |
-
-### 15.4 Risk Mitigation Implementation Timeline
-
-**Quarter 1-2:**
-- Implement comprehensive monitoring and alerting
-- Establish backup and disaster recovery procedures
-- Basic security measures (HTTPS, password hashing, rate limiting)
-
-**Quarter 3-4:**
-- Advanced security features (MFA, audit logging)
-- Performance optimization and caching strategy
-- Payment gateway redundancy
-
-**Quarter 5-6:**
-- Multi-region deployment for high availability
-- Advanced compliance features (GDPR, data retention policies)
-- Penetration testing and security audits
-
-### 15.5 Contingency Plans
-
-**Data Breach Response:**
-1. Immediate incident response team activation
-2. Containment and investigation
-3. Notification to affected users (within 72 hours per GDPR)
-4. Security patch deployment
-5. Post-mortem analysis and process improvement
-
-**Service Outage Response:**
-1. Automated failover to backup region
-2. Communication via status page and email
-3. Rollback if caused by recent deployment
-4. Investigation and resolution
-5. Root cause analysis and prevention measures
-
-**Financial Contingency:**
-- 6-month runway maintained at all times
-- Multiple payment processor integrations
-- Ability to reduce costs by scaling down non-essential features
-
----
-
-## Appendices
-
-### Appendix A: Third-Party Services
-
-| Service | Purpose | Cost | SLA |
-|---------|---------|------|-----|
-| **Clerk** | Authentication | $0-25/month | 99.9% |
-| **Neon** | PostgreSQL | $0-50/month | 99.95% |
-| **Upstash** | Redis | $0-20/month | 99.9% |
-| **AWS S3** | File storage | $0-10/month | 99.99% |
-| **Vercel** | Hosting | $0-20/month | 99.99% |
-| **Render** | Background workers | $0-30/month | 99.9% |
-| **Razorpay** | Payments | 2% + ₹3 per transaction | 99.9% |
-| **Sentry** | Error tracking | $0-26/month | 99.9% |
-
-### Appendix B: Development Tools
-
-| Tool | Purpose | Integration |
-|------|---------|-------------|
-| **GitHub** | Source control, CI/CD | Webhooks, Actions |
-| **VSCode** | Development environment | Extensions for TypeScript, Tailwind |
-| **Docker** | Local development | Docker Compose for services |
-| **Postman** | API testing | Collection sharing |
-| **Figma** | UI/UX design | Design system components |
-| **Notion** | Documentation | Project management |
-| **Slack** | Communication | Alert notifications |
-
-### Appendix C: Performance Benchmarks
-
-**Target Benchmarks:**
-
-| Metric | Target | Current | Status |
-|--------|--------|---------|--------|
-| **Time to First Byte** | <200ms | N/A | Pending |
-| **First Contentful Paint** | <1.5s | N/A | Pending |
-| **API Response Time (p95)** | <500ms | N/A | Pending |
-| **Database Query Time** | <100ms | N/A | Pending |
-| **Concurrent Users** | 1000+ | N/A | Pending |
-| **Uptime** | 99.95% | N/A | Pending |
-
-**Measurement Tools:**
-- Lighthouse for web performance
-- k6 for load testing
-- pg_stat_statements for database monitoring
-- Application Performance Monitoring (APM) for runtime metrics
-
-### Appendix D: Compliance Checklist
-
-- [ ] Privacy Policy and Terms of Service
-- [ ] GDPR compliance (data portability, right to be forgotten)
-- [ ] Payment Card Industry Data Security Standard (PCI DSS) for payment handling
-- [ ] Regular security audits and penetration testing
-- [ ] Data backup and disaster recovery plan
-- [ ] Incident response plan
-- [ ] Employee security training
-- [ ] Access control and authentication policies
-
----
-
-## Document History
-
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | December 8, 2025 | Junaid Ali Khan | Initial draft |
-| 1.1 | TBD | TBD | Updates based on implementation feedback |
-
----
-
-## Approval
-
-| Role | Name | Signature | Date |
-|------|------|-----------|------|
-| Product Owner | TBD | | |
-| Lead Developer | TBD | | |
-| DevOps Engineer | TBD | | |
-| Security Officer | TBD | | |
-
----
-
-*This document provides a comprehensive system design for the Trading Journal application. It will evolve as the project progresses through implementation and user feedback.*
+**Document Version**: 3.0  
+**Status**: Final  
