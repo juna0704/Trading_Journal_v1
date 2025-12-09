@@ -15,7 +15,7 @@ The system features multi-tenancy architecture, workspace isolation, advanced tr
 
 ### 📚 Project Documentation
 
-The project includes comprehensive technical documentation located in the `documents/` directory:
+The project includes comprehensive technical documentation located in the `docs/` directory:
 
 ```
 documents/
@@ -64,7 +64,7 @@ The application follows a layered, modular architecture designed for scalability
 - **Storage**: AWS S3 for secure file uploads
 - **Proxy**: Nginx reverse proxy configuration
 
-*Detailed architecture diagrams available in [SystemDesign.md](documents/SystemDesign.md)*
+*Detailed architecture diagrams available in [SystemDesign.md](docs/SystemDesign.md)*
 
 ## 🗄️ Database Architecture
 
@@ -81,7 +81,7 @@ The system utilizes PostgreSQL with UUID primary keys for enhanced security and 
 | `trade_tags` | Many-to-many relationship mapping |
 | `uploads` | File attachment metadata storage |
 
-*Complete schema documentation available in [DatabaseSchema.md](documents/DatabaseSchema.md)*
+*Complete schema documentation available in [DatabaseSchema.md](docs/DatabaseSchema.md)*
 
 ## 🔒 Security Framework
 
@@ -95,7 +95,7 @@ The application implements enterprise-grade security practices:
 - **Web Security**: CSP, HSTS, CSRF protection headers
 - **Compliance**: GDPR-ready data handling procedures
 
-*Detailed security policies available in [SecurityAndCompliance.md](documents/SecurityAndCompliance.md)*
+*Detailed security policies available in [SecurityAndCompliance.md](docs/SecurityAndCompliance.md)*
 
 ## 🧪 Testing Strategy
 
@@ -108,7 +108,7 @@ The project employs a comprehensive, multi-layered testing approach:
 - **Performance Testing**: Large dataset query optimization
 - **Automation**: CI/CD integration via GitHub Actions
 
-*Complete testing methodology available in [TestingStrategy.md](documents/TestingStrategy.md)*
+*Complete testing methodology available in [TestingStrategy.md](docs/TestingStrategy.md)*
 
 ## 🌐 API Specification
 
@@ -130,7 +130,7 @@ GET  /api/v1/analytics/summary # Performance analytics
 POST /api/v1/uploads/presign  # Secure upload authorization
 ```
 
-*Complete API documentation available in [APISpecification.md](documents/APISpecification.md)*
+*Complete API documentation available in [APISpecification.md](docs/APISpecification.md)*
 
 ## 🎨 Frontend Architecture
 
@@ -143,7 +143,7 @@ The React-based frontend includes the following key components:
 - **Tag System**: Multi-tag management interface
 - **File Handling**: Secure upload component with progress tracking
 
-*Complete UI/UX specification available in [FrontendSpecification.md](documents/FrontendSpecification.md)*
+*Complete UI/UX specification available in [FrontendSpecification.md](docs/FrontendSpecification.md)*
 
 ## 💰 Subscription Model
 
@@ -155,7 +155,7 @@ Planned SaaS pricing structure:
 | **Pro Plan** | Unlimited trades, advanced analytics, file uploads |
 | **Team Plan** | Multi-user workspace, collaboration features |
 
-*Billing system design detailed in [BillingSpecification.md](documents/BillingSpecification.md)*
+*Billing system design detailed in [BillingSpecification.md](docs/BillingSpecification.md)*
 
 ## 🚀 Deployment Infrastructure
 
@@ -168,7 +168,7 @@ Planned SaaS pricing structure:
 - **CDN/WAF**: Cloudflare integration for performance and security
 - **Deployment**: Zero-downtime deployment strategy
 
-*Deployment pipeline detailed in [DevOpsAndDeployment.md](documents/DevOpsAndDeployment.md)*
+*Deployment pipeline detailed in [DevOpsAndDeployment.md](docs/DevOpsAndDeployment.md)*
 
 ## 🔧 Development Setup
 
@@ -182,7 +182,7 @@ Planned SaaS pricing structure:
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/trading-journal.git
+   git clone https://github.com/juna0704/Trading_Journal_v1
    cd trading-journal
    ```
 
@@ -267,7 +267,7 @@ Proprietary – All rights reserved. Commercial use prohibited without explicit 
 
 **Junaid Ali Khan**  
 Developer · System Architect · Trader  
-Contact: architecture@tradingjournal.com  
+Contact: junaidalikhan0704@gmail.com 
 
 ---
 
