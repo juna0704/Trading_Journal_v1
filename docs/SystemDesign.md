@@ -1076,4 +1076,349 @@ npm run db:generate
 # Review migration file
 cat drizzle/0001_add_trades_table.sql
 
-# Apply to
+# Apply to staging
+npm run db:migrate:staging
+
+# Apply to production
+npm run db:migrate:production
+
+# Rollback procedure
+npm run db:rollback
+```
+
+**Migration Safety Measures:**
+1. Always backup database before migration
+2. Test migrations on staging with production-like data
+3. Use transactional migrations (single transaction per migration)
+4. Include rollback scripts for every migration
+5. Monitor migration performance with timeout limits
+
+### 13.4 Deployment Topology
+
+**Vercel (Frontend + API):**
+- Automatic scaling
+- Edge functions for API routes
+- Global CDN for static assets
+- Automatic SSL certificates
+
+**Render (Background Workers):**
+- Separate service for BullMQ workers
+- Autoscaling based on queue length
+- Persistent Redis for job storage
+
+**Neon (PostgreSQL):**
+- Branching for staging/production
+- Point-in-time recovery
+- Read replicas for analytics
+
+**Upstash (Redis):**
+- Managed Redis with persistence
+- TLS encryption
+- Automatic backups
+
+### 13.5 Deployment Checklist
+
+**Pre-Deployment:**
+- [ ] All tests passing (unit, integration, E2E)
+- [ ] No critical security vulnerabilities
+- [ ] Performance test results within acceptable range
+- [ ] Database migration tested on staging
+- [ ] Rollback plan documented and tested
+
+**During Deployment:**
+- [ ] Deploy to staging, verify functionality
+- [ ] Run smoke tests on staging
+- [ ] Apply database migrations
+- [ ] Deploy to production with zero-downtime strategy
+- [ ] Enable feature flags gradually (if applicable)
+- [ ] Monitor error rates and performance metrics
+
+**Post-Deployment:**
+- [ ] Verify key user journeys
+- [ ] Monitor error rates for 1 hour
+- [ ] Send deployment notification to team
+- [ ] Update deployment documentation
+
+---
+
+## 14. Implementation Roadmap
+
+### 14.1 Phase 1: MVP (Months 1-2)
+
+**Objective:** Functional trading journal for personal use
+
+**Core Features:**
+- User authentication (Clerk integration)
+- Trade CRUD operations
+- Basic PnL calculations
+- Tag system for trade categorization
+- Simple dashboard with win rate and total PnL
+
+**Technical Setup:**
+- [x] Project initialization with Next.js 14
+- [x] PostgreSQL database with Neon
+- [x] Authentication setup with Clerk
+- [x] DrizzleORM schema definitions
+- [ ] Basic API routes for trades and tags
+- [ ] Responsive UI with Tailwind CSS
+- [ ] Deployment pipeline to Vercel
+
+**Success Metrics:**
+- ✅ 10 daily active users (internal testers)
+- ✅ <100ms API response time for core endpoints
+- ✅ Zero critical bugs in production
+- ✅ 100% test coverage for core business logic
+
+### 14.2 Phase 2: Analytics & Reports (Months 3-4)
+
+**Objective:** Add advanced analytics and export capabilities
+
+**New Features:**
+- Advanced performance metrics (Sharpe ratio, max drawdown)
+- Equity curve visualization
+- CSV import/export functionality
+- PDF report generation
+- Trade filtering by date, symbol, tags
+
+**Technical Implementation:**
+- [ ] Analytics service with cached computations
+- [ ] BullMQ workers for background processing
+- [ ] S3 integration for file storage
+- [ ] Chart.js/Recharts integration for visualizations
+- [ ] CSV parsing with error handling
+- [ ] PDF generation with report templates
+
+**Success Metrics:**
+- ✅ 50 daily active users
+- ✅ 90% user satisfaction with analytics features
+- ✅ Report generation under 30 seconds
+- ✅ Import processing for 1000+ trades
+
+### 14.3 Phase 3: Multi-Tenancy SaaS (Months 5-6)
+
+**Objective:** Transform into multi-tenant SaaS platform
+
+**New Features:**
+- Team accounts with role-based access
+- Subscription plans with billing integration
+- Usage limits and enforcement
+- Tenant isolation with RLS
+- Admin dashboard for tenant management
+
+**Technical Implementation:**
+- [ ] Row-Level Security implementation
+- [ ] Razorpay subscription integration
+- [ ] Plan enforcement middleware
+- [ ] Tenant management dashboard
+- [ ] User invitation and management
+- [ ] Enhanced logging for multi-tenant environment
+
+**Success Metrics:**
+- ✅ First 10 paying customers
+- ✅ 99.9% uptime SLA
+- ✅ Successful handling of 100+ concurrent users
+- ✅ <2% payment failure rate
+
+### 14.4 Phase 4: Advanced Features (Months 7-9)
+
+**Objective:** Enterprise features and platform maturation
+
+**New Features:**
+- Webhook integrations with trading platforms
+- API access for developers
+- White-label options for enterprise
+- Advanced risk analytics
+- Mobile app (React Native)
+- Custom report builder
+
+**Technical Implementation:**
+- [ ] Webhook handling system
+- [ ] Public API with rate limiting
+- [ ] Theme customization engine
+- [ ] React Native mobile app
+- [ ] Advanced risk modeling service
+- [ ] Custom report builder with drag-and-drop interface
+
+**Success Metrics:**
+- ✅ 100+ paying customers
+- ✅ 99.99% uptime
+- ✅ <500ms p95 API response time
+- ✅ Successful integration with 5+ trading platforms
+
+### 14.5 Phase 5: Scale & Optimization (Months 10-12)
+
+**Objective:** Platform optimization and scaling for growth
+
+**Focus Areas:**
+- Performance optimization
+- Cost optimization
+- Internationalization
+- Advanced security features
+- Analytics platform for internal insights
+
+**Technical Implementation:**
+- [ ] Database sharding strategy
+- [ ] CDN optimization for global users
+- [ ] Multi-language support
+- [ ] Advanced security audit and penetration testing
+- [ ] Internal analytics dashboard for business metrics
+
+**Success Metrics:**
+- ✅ Support for 10,000+ concurrent users
+- ✅ 40% reduction in infrastructure costs
+- ✅ Expansion to 3+ languages
+- ✅ SOC 2 Type II certification
+
+---
+
+## 15. Risk Assessment
+
+### 15.1 Technical Risks
+
+| Risk | Probability | Impact | Mitigation Strategy |
+|------|-------------|---------|-------------------|
+| **Database performance degradation** | Medium | High | Implement query optimization, caching strategy, and monitoring |
+| **Data loss** | Low | Critical | Regular backups (daily), point-in-time recovery, multi-region replication |
+| **Security breach** | Medium | Critical | Regular security audits, penetration testing, encryption at rest and in transit |
+| **Service downtime** | Low | High | Multi-region deployment, automated failover, health checks |
+| **Third-party service failure** | Medium | Medium | Circuit breaker pattern, fallback mechanisms, multiple provider options |
+
+### 15.2 Business Risks
+
+| Risk | Probability | Impact | Mitigation Strategy |
+|------|-------------|---------|-------------------|
+| **Low user adoption** | High | High | User research, feedback loops, referral programs, freemium model |
+| **Payment processing issues** | Medium | High | Multiple payment gateways, clear error messages, manual override capability |
+| **Competitor innovation** | High | Medium | Continuous feature development, focus on UX, community building |
+| **Regulatory changes** | Low | Medium | Legal counsel, flexible architecture, monitoring regulatory landscape |
+| **Data privacy compliance** | Medium | High | GDPR compliance from day 1, data minimization, clear privacy policy |
+
+### 15.3 Operational Risks
+
+| Risk | Probability | Impact | Mitigation Strategy |
+|------|-------------|---------|-------------------|
+| **Team member attrition** | Medium | Medium | Documentation, cross-training, modular codebase |
+| **Cost overruns** | High | Medium | Budget monitoring, cost alerts, serverless where possible |
+| **Feature creep** | High | Medium | Strict MVP focus, user feedback prioritization, roadmap transparency |
+| **Technical debt accumulation** | High | Medium | Regular refactoring sprints, code quality gates, automated testing |
+
+### 15.4 Risk Mitigation Implementation Timeline
+
+**Quarter 1-2:**
+- Implement comprehensive monitoring and alerting
+- Establish backup and disaster recovery procedures
+- Basic security measures (HTTPS, password hashing, rate limiting)
+
+**Quarter 3-4:**
+- Advanced security features (MFA, audit logging)
+- Performance optimization and caching strategy
+- Payment gateway redundancy
+
+**Quarter 5-6:**
+- Multi-region deployment for high availability
+- Advanced compliance features (GDPR, data retention policies)
+- Penetration testing and security audits
+
+### 15.5 Contingency Plans
+
+**Data Breach Response:**
+1. Immediate incident response team activation
+2. Containment and investigation
+3. Notification to affected users (within 72 hours per GDPR)
+4. Security patch deployment
+5. Post-mortem analysis and process improvement
+
+**Service Outage Response:**
+1. Automated failover to backup region
+2. Communication via status page and email
+3. Rollback if caused by recent deployment
+4. Investigation and resolution
+5. Root cause analysis and prevention measures
+
+**Financial Contingency:**
+- 6-month runway maintained at all times
+- Multiple payment processor integrations
+- Ability to reduce costs by scaling down non-essential features
+
+---
+
+## Appendices
+
+### Appendix A: Third-Party Services
+
+| Service | Purpose | Cost | SLA |
+|---------|---------|------|-----|
+| **Clerk** | Authentication | $0-25/month | 99.9% |
+| **Neon** | PostgreSQL | $0-50/month | 99.95% |
+| **Upstash** | Redis | $0-20/month | 99.9% |
+| **AWS S3** | File storage | $0-10/month | 99.99% |
+| **Vercel** | Hosting | $0-20/month | 99.99% |
+| **Render** | Background workers | $0-30/month | 99.9% |
+| **Razorpay** | Payments | 2% + ₹3 per transaction | 99.9% |
+| **Sentry** | Error tracking | $0-26/month | 99.9% |
+
+### Appendix B: Development Tools
+
+| Tool | Purpose | Integration |
+|------|---------|-------------|
+| **GitHub** | Source control, CI/CD | Webhooks, Actions |
+| **VSCode** | Development environment | Extensions for TypeScript, Tailwind |
+| **Docker** | Local development | Docker Compose for services |
+| **Postman** | API testing | Collection sharing |
+| **Figma** | UI/UX design | Design system components |
+| **Notion** | Documentation | Project management |
+| **Slack** | Communication | Alert notifications |
+
+### Appendix C: Performance Benchmarks
+
+**Target Benchmarks:**
+
+| Metric | Target | Current | Status |
+|--------|--------|---------|--------|
+| **Time to First Byte** | <200ms | N/A | Pending |
+| **First Contentful Paint** | <1.5s | N/A | Pending |
+| **API Response Time (p95)** | <500ms | N/A | Pending |
+| **Database Query Time** | <100ms | N/A | Pending |
+| **Concurrent Users** | 1000+ | N/A | Pending |
+| **Uptime** | 99.95% | N/A | Pending |
+
+**Measurement Tools:**
+- Lighthouse for web performance
+- k6 for load testing
+- pg_stat_statements for database monitoring
+- Application Performance Monitoring (APM) for runtime metrics
+
+### Appendix D: Compliance Checklist
+
+- [ ] Privacy Policy and Terms of Service
+- [ ] GDPR compliance (data portability, right to be forgotten)
+- [ ] Payment Card Industry Data Security Standard (PCI DSS) for payment handling
+- [ ] Regular security audits and penetration testing
+- [ ] Data backup and disaster recovery plan
+- [ ] Incident response plan
+- [ ] Employee security training
+- [ ] Access control and authentication policies
+
+---
+
+## Document History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0 | December 8, 2025 | Junaid Ali Khan | Initial draft |
+| 1.1 | TBD | TBD | Updates based on implementation feedback |
+
+---
+
+## Approval
+
+| Role | Name | Signature | Date |
+|------|------|-----------|------|
+| Product Owner | TBD | | |
+| Lead Developer | TBD | | |
+| DevOps Engineer | TBD | | |
+| Security Officer | TBD | | |
+
+---
+
+*This document provides a comprehensive system design for the Trading Journal application. It will evolve as the project progresses through implementation and user feedback.*
