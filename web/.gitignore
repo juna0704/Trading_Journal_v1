@@ -1,0 +1,10 @@
+# FRONTEND-SPECIFIC IGNORES
+.next/                  # Next.js build output
+out/                    # Static export output
+.next/cache/            # Next.js cache
+.next/standalone/       # Next.js standalone
+.next/server/chunks/    # Server chunks
+public/build/           # Build assets
+*.tsbuildinfo           # TypeScript build info
+.next-swc/              # SWC cache
+.next-env.d.ts          # Next.js env types

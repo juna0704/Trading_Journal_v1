@@ -1,5 +1,14 @@
-node_modules
-# Keep environment variables out of version control
-.env
-
-/src/generated/prisma
+# BACKEND-SPECIFIC IGNORES
+logs/                   # API logs (doesn't exist in web/)
+*.pid                   # Process ID files
+*.seed                  # Seed data files
+prisma/.env             # Prisma-specific env
+*.pem                   # SSL certificates
+uploads/                # Local uploads directory
+temp/                   # Temporary files
+dump.rdb                # Redis dump
+*.sqlite                # SQLite databases
+*.sqlite3
+.env.test               # Test environment
+.env.development        # Development environment
+.env.production         # Production environment
