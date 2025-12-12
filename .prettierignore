@@ -1,0 +1,40 @@
+# Node dependencies
+node_modules/
+api/node_modules/
+frontend/node_modules/
+
+# Build output
+dist/
+build/
+api/dist/
+frontend/dist/
+frontend/.next/
+frontend/out/
+
+# Logs
+*.log
+
+# Coverage
+coverage/
+
+# Public assets
+api/public/
+frontend/public/
+
+# Docs
+api/docs/
+api/docs/**/*.html
+
+# Root markdown (we do not format these automatically)
+README.md
+LICENSE
+CONTRIBUTING.md
+
+# GitHub metadata
+.github/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# VSCode metadata (don't format IDE config)
+.vscode/

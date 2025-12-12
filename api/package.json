@@ -1,0 +1,32 @@
+{
+  "name": "trading_journal_api",
+  "version": "1.0.0",
+  "description": "Backend for trading journal",
+  "homepage": "https://github.com/juna0704/Trading_Journal_v1#readme",
+  "bugs": {
+    "url": "https://github.com/juna0704/Trading_Journal_v1/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/juna0704/Trading_Journal_v1.git"
+  },
+  "license": "ISC",
+  "author": "Junaid Ali Khan",
+  "type": "commonjs",
+  "main": "server.ts",
+  "scripts": {
+    "dev": "nodemon",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {
+    "@prisma/client": "^7.1.0",
+    "dotenv": "^17.2.3",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "@types/ms": "^2.1.0",
+    "@types/node": "^25.0.1",
+    "prisma": "^7.1.0"
+  }
+}
