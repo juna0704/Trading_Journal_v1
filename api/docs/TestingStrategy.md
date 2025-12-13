@@ -35,14 +35,14 @@ This document outlines the comprehensive testing strategy for the Trading Journa
 
 ### 1.1 Core Principles
 
-| Principle | Implementation |
-|-----------|----------------|
-| **Test Early, Test Often** | Tests run on every commit |
-| **Shift Left** | Security/performance testing early in SDLC |
-| **Automate Everything** | 95%+ test automation coverage |
-| **Test in Production-like Environment** | Staging environment mirrors production |
-| **Fail Fast** | Quick feedback loops for developers |
-| **Risk-Based Testing** | Focus on critical business features |
+| Principle                               | Implementation                             |
+| --------------------------------------- | ------------------------------------------ |
+| **Test Early, Test Often**              | Tests run on every commit                  |
+| **Shift Left**                          | Security/performance testing early in SDLC |
+| **Automate Everything**                 | 95%+ test automation coverage              |
+| **Test in Production-like Environment** | Staging environment mirrors production     |
+| **Fail Fast**                           | Quick feedback loops for developers        |
+| **Risk-Based Testing**                  | Focus on critical business features        |
 
 ### 1.2 Testing Objectives
 
@@ -64,6 +64,7 @@ Success Metrics:
 ### 1.3 Testing Scope
 
 **In Scope:**
+
 - All API endpoints and responses
 - Database migrations and integrity
 - Authentication/Authorization flows
@@ -74,6 +75,7 @@ Success Metrics:
 - Performance under load
 
 **Out of Scope:**
+
 - Browser compatibility testing (covered by component library)
 - Third-party service failures (handled by monitoring)
 - Load testing beyond defined limits
@@ -109,26 +111,26 @@ Success Metrics:
 
 ### 2.2 Test Distribution by Component
 
-| Component | Unit Tests | Integration Tests | E2E Tests | Total |
-|-----------|------------|-------------------|-----------|-------|
-| **API Layer** | 70% | 25% | 5% | 40% |
-| **Business Logic** | 85% | 10% | 5% | 30% |
-| **Database Layer** | 60% | 35% | 5% | 15% |
-| **Frontend** | 75% | 20% | 5% | 10% |
-| **Security** | 50% | 40% | 10% | 5% |
+| Component          | Unit Tests | Integration Tests | E2E Tests | Total |
+| ------------------ | ---------- | ----------------- | --------- | ----- |
+| **API Layer**      | 70%        | 25%               | 5%        | 40%   |
+| **Business Logic** | 85%        | 10%               | 5%        | 30%   |
+| **Database Layer** | 60%        | 35%               | 5%        | 15%   |
+| **Frontend**       | 75%        | 20%               | 5%        | 10%   |
+| **Security**       | 50%        | 40%               | 10%       | 5%    |
 
 ### 2.3 Test Types by Feature Priority
 
-| Feature Area | Criticality | Test Coverage |
-|--------------|-------------|---------------|
-| **Authentication** | Critical | 100% |
-| **Trade Calculations** | Critical | 100% |
-| **Tenant Isolation** | Critical | 100% |
-| **Analytics Engine** | High | 95% |
-| **File Uploads** | High | 90% |
-| **Tag Management** | Medium | 85% |
-| **User Preferences** | Medium | 80% |
-| **Billing/Subscriptions** | High | 95% |
+| Feature Area              | Criticality | Test Coverage |
+| ------------------------- | ----------- | ------------- |
+| **Authentication**        | Critical    | 100%          |
+| **Trade Calculations**    | Critical    | 100%          |
+| **Tenant Isolation**      | Critical    | 100%          |
+| **Analytics Engine**      | High        | 95%           |
+| **File Uploads**          | High        | 90%           |
+| **Tag Management**        | Medium      | 85%           |
+| **User Preferences**      | Medium      | 80%           |
+| **Billing/Subscriptions** | High        | 95%           |
 
 ---
 
@@ -136,12 +138,12 @@ Success Metrics:
 
 ### 3.1 Environment Matrix
 
-| Environment | Purpose | Data | Access |
-|-------------|---------|------|--------|
-| **Local** | Development | Mock/Seeded | Developers |
-| **CI/CD** | Automated Tests | Ephemeral | CI System |
-| **Staging** | Pre-Production | Production-like | QA Team |
-| **Production** | Live | Real data | All users |
+| Environment    | Purpose         | Data            | Access     |
+| -------------- | --------------- | --------------- | ---------- |
+| **Local**      | Development     | Mock/Seeded     | Developers |
+| **CI/CD**      | Automated Tests | Ephemeral       | CI System  |
+| **Staging**    | Pre-Production  | Production-like | QA Team    |
+| **Production** | Live            | Real data       | All users  |
 
 ### 3.2 Docker Compose for Test Environments
 
@@ -177,8 +179,8 @@ services:
   mailhog:
     image: mailhog/mailhog
     ports:
-      - "8025:8025"  # Web UI
-      - "1025:1025"  # SMTP
+      - '8025:8025' # Web UI
+      - '1025:1025' # SMTP
 
 volumes:
   postgres_test_data:
@@ -191,7 +193,7 @@ volumes:
 BEGIN;
 
 -- Create test tenant
-INSERT INTO tenants (id, name, slug, plan, status) 
+INSERT INTO tenants (id, name, slug, plan, status)
 VALUES (
     'test_tenant_001',
     'Test Trading Co',
@@ -201,8 +203,8 @@ VALUES (
 );
 
 -- Create test users
-INSERT INTO users (id, tenant_id, email, name, password_hash, role) 
-VALUES 
+INSERT INTO users (id, tenant_id, email, name, password_hash, role)
+VALUES
 (
     'test_user_001',
     'test_tenant_001',
@@ -222,14 +224,14 @@ VALUES
 );
 
 -- Create test tags
-INSERT INTO tags (id, tenant_id, name, color) 
-VALUES 
+INSERT INTO tags (id, tenant_id, name, color)
+VALUES
 ('test_tag_001', 'test_tenant_001', 'earnings', '#3B82F6'),
 ('test_tag_002', 'test_tenant_001', 'breakout', '#10B981');
 
 -- Create test trades
-INSERT INTO trades (id, tenant_id, user_id, symbol, side, entry_price, exit_price, quantity, fees, entry_timestamp, exit_timestamp) 
-VALUES 
+INSERT INTO trades (id, tenant_id, user_id, symbol, side, entry_price, exit_price, quantity, fees, entry_timestamp, exit_timestamp)
+VALUES
 (
     'test_trade_001',
     'test_tenant_001',
@@ -258,8 +260,8 @@ VALUES
 );
 
 -- Link trades to tags
-INSERT INTO trade_tags (trade_id, tag_id) 
-VALUES 
+INSERT INTO trade_tags (trade_id, tag_id)
+VALUES
 ('test_trade_001', 'test_tag_001'),
 ('test_trade_002', 'test_tag_002');
 
@@ -315,7 +317,7 @@ describe('Authentication API', () => {
         .send({
           email: 'newuser@test.com',
           name: 'New User',
-          password: 'SecurePass123!'
+          password: 'SecurePass123!',
         })
         .expect(201);
 
@@ -331,7 +333,7 @@ describe('Authentication API', () => {
         .send({
           email: 'owner@test.com', // Already exists
           name: 'Duplicate',
-          password: 'SecurePass123!'
+          password: 'SecurePass123!',
         })
         .expect(409);
 
@@ -344,7 +346,7 @@ describe('Authentication API', () => {
         .send({
           email: 'weak@test.com',
           name: 'Weak User',
-          password: 'weak'
+          password: 'weak',
         })
         .expect(400);
 
@@ -361,7 +363,7 @@ describe('Authentication API', () => {
         .post('/api/v1/auth/login')
         .send({
           email: 'owner@test.com',
-          password: 'TestPass123!'
+          password: 'TestPass123!',
         })
         .expect(200);
 
@@ -372,19 +374,17 @@ describe('Authentication API', () => {
 
     it('should enforce rate limiting', async () => {
       for (let i = 0; i < 11; i++) {
-        await request(app)
-          .post('/api/v1/auth/login')
-          .send({
-            email: 'owner@test.com',
-            password: 'WrongPassword123!'
-          });
+        await request(app).post('/api/v1/auth/login').send({
+          email: 'owner@test.com',
+          password: 'WrongPassword123!',
+        });
       }
 
       const response = await request(app)
         .post('/api/v1/auth/login')
         .send({
           email: 'owner@test.com',
-          password: 'TestPass123!'
+          password: 'TestPass123!',
         })
         .expect(429);
 
@@ -405,12 +405,10 @@ describe('Trade API', () => {
 
   beforeAll(async () => {
     // Get auth token for test user
-    const loginRes = await request(app)
-      .post('/api/v1/auth/login')
-      .send({
-        email: 'owner@test.com',
-        password: 'TestPass123!'
-      });
+    const loginRes = await request(app).post('/api/v1/auth/login').send({
+      email: 'owner@test.com',
+      password: 'TestPass123!',
+    });
 
     authToken = loginRes.body.data.accessToken;
     userId = loginRes.body.data.user.id;
@@ -429,7 +427,7 @@ describe('Trade API', () => {
         entryTimestamp: '2025-01-03T10:00:00Z',
         exitTimestamp: '2025-01-03T15:30:00Z',
         notes: 'Technical breakout play',
-        tags: ['earnings', 'momentum']
+        tags: ['earnings', 'momentum'],
       };
 
       const response = await request(app)
@@ -456,7 +454,7 @@ describe('Trade API', () => {
           exitPrice: 155,
           quantity: 100,
           entryTimestamp: '2025-01-02T15:00:00Z',
-          exitTimestamp: '2025-01-02T10:00:00Z' // Before entry
+          exitTimestamp: '2025-01-02T10:00:00Z', // Before entry
         })
         .expect(400);
 
@@ -464,7 +462,7 @@ describe('Trade API', () => {
       expect(response.body.error.details).toContainEqual(
         expect.objectContaining({
           field: 'exitTimestamp',
-          message: expect.stringContaining('after entry')
+          message: expect.stringContaining('after entry'),
         })
       );
     });
@@ -483,7 +481,7 @@ describe('Trade API', () => {
           exitPrice: 310,
           quantity: 10,
           entryTimestamp: '2025-01-04T09:30:00Z',
-          exitTimestamp: '2025-01-04T16:00:00Z'
+          exitTimestamp: '2025-01-04T16:00:00Z',
         })
         .expect(403);
 
@@ -504,7 +502,7 @@ describe('Trade API', () => {
         page: 1,
         limit: 10,
         hasNext: expect.any(Boolean),
-        hasPrev: expect.any(Boolean)
+        hasPrev: expect.any(Boolean),
       });
     });
 
@@ -525,7 +523,7 @@ describe('Trade API', () => {
     it('should enforce tenant isolation', async () => {
       // Create a different tenant/user
       const otherUserToken = await createTestUser('other@tenant.com', 'other_tenant');
-      
+
       // Try to access first user's trades
       const response = await request(app)
         .get('/api/v1/trades')
@@ -560,7 +558,7 @@ describe('Trade API', () => {
 
     it('should prevent cross-tenant access', async () => {
       const otherUserToken = await createTestUser('hacker@test.com', 'hacker_tenant');
-      
+
       await request(app)
         .get('/api/v1/trades/test_trade_001')
         .set('Authorization', `Bearer ${otherUserToken}`)
@@ -578,12 +576,10 @@ describe('Analytics API', () => {
   let authToken: string;
 
   beforeAll(async () => {
-    const loginRes = await request(app)
-      .post('/api/v1/auth/login')
-      .send({
-        email: 'owner@test.com',
-        password: 'TestPass123!'
-      });
+    const loginRes = await request(app).post('/api/v1/auth/login').send({
+      email: 'owner@test.com',
+      password: 'TestPass123!',
+    });
     authToken = loginRes.body.data.accessToken;
   });
 
@@ -599,10 +595,10 @@ describe('Analytics API', () => {
       expect(trades.total).toBeGreaterThan(0);
       expect(trades.winRate).toBeGreaterThanOrEqual(0);
       expect(trades.winRate).toBeLessThanOrEqual(100);
-      
+
       expect(pnl.total).toBeDefined();
       expect(pnl.average).toBeDefined();
-      
+
       expect(performance.profitFactor).toBeGreaterThan(0);
       expect(performance.maxDrawdown).toBeLessThanOrEqual(0);
     });
@@ -631,7 +627,7 @@ describe('Analytics API', () => {
 
       expect(response.body.data.dimension).toBe('symbol');
       expect(response.body.data.items).toBeInstanceOf(Array);
-      
+
       response.body.data.items.forEach((item: any) => {
         expect(item.value).toBeDefined(); // Symbol name
         expect(item.trades).toBeGreaterThan(0);
@@ -676,10 +672,10 @@ describe('Database Migrations', () => {
 
   test('should rollback specific migration', async () => {
     await migrate();
-    
+
     const migrations = await getAppliedMigrations();
     const lastMigration = migrations[migrations.length - 1];
-    
+
     const result = await rollback(lastMigration.version);
     expect(result.success).toBe(true);
     expect(result.rolledBackMigration).toBe(lastMigration.version);
@@ -688,16 +684,16 @@ describe('Database Migrations', () => {
   test('should maintain data integrity after migration', async () => {
     // Insert test data before migration
     await insertTestData();
-    
+
     // Apply migration
     await migrate();
-    
+
     // Verify data still exists and is valid
     const trades = await getAllTrades();
     expect(trades.length).toBeGreaterThan(0);
-    
+
     // Check new columns if added
-    trades.forEach(trade => {
+    trades.forEach((trade) => {
       expect(trade.tenant_id).toBeDefined();
       expect(trade.deleted_at).toBeNull(); // Soft delete not applied
     });
@@ -709,7 +705,7 @@ describe('Database Migrations', () => {
       db.query('INSERT INTO trades (tenant_id, user_id, symbol) VALUES ($1, $2, $3)', [
         'non_existent_tenant',
         'test_user_001',
-        'AAPL'
+        'AAPL',
       ])
     ).rejects.toThrow(/foreign key constraint/);
   });
@@ -736,38 +732,38 @@ describe('Database Integrity', () => {
     `);
 
     const { side, entry_price, exit_price, quantity, fees, pnl, pnl_percentage } = trade.rows[0];
-    
+
     let expectedPnl;
     if (side === 'long') {
       expectedPnl = (exit_price - entry_price) * quantity - fees;
     } else {
       expectedPnl = (entry_price - exit_price) * quantity - fees;
     }
-    
+
     const expectedPercentage = (expectedPnl / (entry_price * quantity)) * 100;
-    
+
     expect(pnl).toBeCloseTo(expectedPnl, 4);
     expect(pnl_percentage).toBeCloseTo(expectedPercentage, 4);
   });
 
   test('trade_tags should maintain referential integrity', async () => {
     // Delete a tag that's in use
-    await expect(
-      db.query('DELETE FROM tags WHERE id = $1', ['test_tag_001'])
-    ).rejects.toThrow(/foreign key constraint/);
+    await expect(db.query('DELETE FROM tags WHERE id = $1', ['test_tag_001'])).rejects.toThrow(
+      /foreign key constraint/
+    );
   });
 
   test('soft delete should not remove records', async () => {
     const tradeId = 'test_trade_001';
-    
+
     // Soft delete
     await db.query('UPDATE trades SET deleted_at = NOW() WHERE id = $1', [tradeId]);
-    
+
     // Should still exist in database
     const result = await db.query('SELECT * FROM trades WHERE id = $1', [tradeId]);
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].deleted_at).not.toBeNull();
-    
+
     // Should not appear in regular queries
     const activeTrades = await db.query(
       'SELECT * FROM trades WHERE deleted_at IS NULL AND id = $1',
@@ -786,21 +782,24 @@ describe('Database Performance', () => {
   test('trade listing query should be performant', async () => {
     // Generate large dataset
     await generateTestTrades(10000);
-    
+
     const startTime = Date.now();
-    
-    const result = await db.query(`
+
+    const result = await db.query(
+      `
       SELECT * FROM trades 
       WHERE tenant_id = $1 
         AND deleted_at IS NULL 
         AND exit_timestamp BETWEEN $2 AND $3
       ORDER BY exit_timestamp DESC
       LIMIT 50
-    `, ['test_tenant_001', '2025-01-01', '2025-12-31']);
-    
+    `,
+      ['test_tenant_001', '2025-01-01', '2025-12-31']
+    );
+
     const endTime = Date.now();
     const executionTime = endTime - startTime;
-    
+
     expect(result.rows.length).toBeLessThanOrEqual(50);
     expect(executionTime).toBeLessThan(100); // Should complete in < 100ms
   });
@@ -818,9 +817,9 @@ describe('Database Performance', () => {
       GROUP BY symbol
       ORDER BY total_pnl DESC
     `);
-    
-    const plan = explainResult.rows.map(r => r['QUERY PLAN']).join('\n');
-    
+
+    const plan = explainResult.rows.map((r) => r['QUERY PLAN']).join('\n');
+
     // Check that index is being used
     expect(plan).toContain('Index Scan');
     expect(plan).not.toContain('Seq Scan');
@@ -906,7 +905,7 @@ describe('TradeForm Component', () => {
     await userEvent.type(screen.getByLabelText(/fees/i), '2.5');
     await userEvent.type(screen.getByLabelText(/entry time/i), '2025-01-01T09:30');
     await userEvent.type(screen.getByLabelText(/exit time/i), '2025-01-01T15:45');
-    
+
     // Select tags
     await userEvent.click(screen.getByLabelText(/earnings/i));
     await userEvent.click(screen.getByLabelText(/breakout/i));
@@ -1020,7 +1019,7 @@ describe('Trade Flow Integration', () => {
     await userEvent.type(screen.getByLabelText(/exit price/i), '140');
     await userEvent.type(screen.getByLabelText(/quantity/i), '100');
     await userEvent.type(screen.getByLabelText(/fees/i), '2.5');
-    
+
     await userEvent.click(screen.getByRole('button', { name: /save trade/i }));
 
     // Should show success message
@@ -1048,12 +1047,12 @@ describe('Trade Flow Integration', () => {
     );
 
     render(<App />);
-    
+
     // ... perform login and navigate to trade form
-    
+
     await userEvent.type(screen.getByLabelText(/symbol/i), 'AAPL');
     await userEvent.type(screen.getByLabelText(/entry price/i), '-100'); // Invalid
-    
+
     await userEvent.click(screen.getByRole('button', { name: /save trade/i }));
 
     await waitFor(() => {
@@ -1078,16 +1077,14 @@ describe('Authentication Security', () => {
       "' OR '1'='1' --",
       "' OR '1'='1' /*",
       "admin' --",
-      "' UNION SELECT * FROM users --"
+      "' UNION SELECT * FROM users --",
     ];
 
     for (const attempt of sqlInjectionAttempts) {
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          email: attempt,
-          password: attempt
-        });
+      const response = await request(app).post('/api/v1/auth/login').send({
+        email: attempt,
+        password: attempt,
+      });
 
       // Should not crash or expose errors
       expect(response.status).not.toBe(500);
@@ -1098,14 +1095,12 @@ describe('Authentication Security', () => {
 
   test('should rate limit brute force attacks', async () => {
     const attempts = 15; // More than the 10/hour limit
-    
+
     for (let i = 0; i < attempts; i++) {
-      const response = await request(app)
-        .post('/api/v1/auth/login')
-        .send({
-          email: 'test@test.com',
-          password: 'wrongpassword'
-        });
+      const response = await request(app).post('/api/v1/auth/login').send({
+        email: 'test@test.com',
+        password: 'wrongpassword',
+      });
 
       if (i >= 10) {
         expect(response.status).toBe(429);
@@ -1116,10 +1111,10 @@ describe('Authentication Security', () => {
 
   test('should validate JWT token integrity', async () => {
     const validToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
-    
+
     // Tampered token
     const tamperedToken = validToken.replace('J9', 'J8');
-    
+
     const response = await request(app)
       .get('/api/v1/trades')
       .set('Authorization', `Bearer ${tamperedToken}`)
@@ -1130,19 +1125,15 @@ describe('Authentication Security', () => {
 
   test('should prevent JWT token replay', async () => {
     // Get a valid token
-    const loginRes = await request(app)
-      .post('/api/v1/auth/login')
-      .send({
-        email: 'owner@test.com',
-        password: 'TestPass123!'
-      });
+    const loginRes = await request(app).post('/api/v1/auth/login').send({
+      email: 'owner@test.com',
+      password: 'TestPass123!',
+    });
 
     const token = loginRes.body.data.accessToken;
 
     // Logout to revoke token
-    await request(app)
-      .post('/api/v1/auth/logout')
-      .set('Authorization', `Bearer ${token}`);
+    await request(app).post('/api/v1/auth/logout').set('Authorization', `Bearer ${token}`);
 
     // Try to use revoked token
     const response = await request(app)
@@ -1222,7 +1213,7 @@ describe('Authorization Security', () => {
   test('should protect against IDOR attacks', async () => {
     // Try to access resources by incrementing IDs
     const attempts = ['trade_001', 'trade_002', 'trade_003', 'user_001', 'user_002'];
-    
+
     for (const id of attempts) {
       const response = await request(app)
         .get(`/api/v1/trades/${id}`)
@@ -1258,7 +1249,7 @@ describe('Input Validation Security', () => {
       '<img src="x" onerror="alert(1)">',
       '<svg onload="alert(1)">',
       'javascript:alert(1)',
-      'data:text/html,<script>alert(1)</script>'
+      'data:text/html,<script>alert(1)</script>',
     ];
 
     for (const payload of xssPayloads) {
@@ -1267,7 +1258,7 @@ describe('Input Validation Security', () => {
         .set('Authorization', `Bearer ${authToken}`)
         .send({
           ...validTradeData,
-          notes: payload
+          notes: payload,
         })
         .expect(201); // Should be sanitized, not rejected
 
@@ -1285,7 +1276,7 @@ describe('Input Validation Security', () => {
       '../../../etc/passwd',
       '..\\..\\windows\\system32\\cmd.exe',
       'file/../../../../etc/passwd',
-      '%2e%2e%2f%2e%2e%2fetc%2fpasswd'
+      '%2e%2e%2f%2e%2e%2fetc%2fpasswd',
     ];
 
     for (const filename of maliciousFilenames) {
@@ -1295,7 +1286,7 @@ describe('Input Validation Security', () => {
         .send({
           filename: filename,
           mimeType: 'image/png',
-          sizeBytes: 1000
+          sizeBytes: 1000,
         })
         .expect(400); // Should be rejected
 
@@ -1304,12 +1295,7 @@ describe('Input Validation Security', () => {
   });
 
   test('should prevent NoSQL injection in query parameters', async () => {
-    const nosqlPayloads = [
-      '{"$ne": null}',
-      '{"$gt": ""}',
-      '{"$where": "1==1"}',
-      '[{"$ne": null}]'
-    ];
+    const nosqlPayloads = ['{"$ne": null}', '{"$gt": ""}', '{"$where": "1==1"}', '[{"$ne": null}]'];
 
     for (const payload of nosqlPayloads) {
       // Try in various query parameters
@@ -1331,7 +1317,7 @@ describe('Input Validation Security', () => {
       { filename: 'virus.exe', mimeType: 'application/x-msdownload', size: 1000 },
       { filename: 'script.php', mimeType: 'application/x-php', size: 1000 },
       { filename: 'shell.sh', mimeType: 'application/x-sh', size: 1000 },
-      { filename: 'large.png', mimeType: 'image/png', size: 10 * 1024 * 1024 } // 10MB
+      { filename: 'large.png', mimeType: 'image/png', size: 10 * 1024 * 1024 }, // 10MB
     ];
 
     for (const file of invalidFiles) {
@@ -1341,7 +1327,7 @@ describe('Input Validation Security', () => {
         .send({
           filename: file.filename,
           mimeType: file.mimeType,
-          sizeBytes: file.size
+          sizeBytes: file.size,
         });
 
       expect(response.status).toBe(400);
@@ -1362,29 +1348,32 @@ import autocannon from 'autocannon';
 
 describe('API Performance', () => {
   test('trade listing should handle concurrent requests', async () => {
-    const instance = autocannon({
-      url: 'http://localhost:3000/api/v1/trades',
-      connections: 100, // Concurrent connections
-      duration: 30, // Test duration in seconds
-      headers: {
-        'Authorization': `Bearer ${testToken}`,
-        'Content-Type': 'application/json'
+    const instance = autocannon(
+      {
+        url: 'http://localhost:3000/api/v1/trades',
+        connections: 100, // Concurrent connections
+        duration: 30, // Test duration in seconds
+        headers: {
+          Authorization: `Bearer ${testToken}`,
+          'Content-Type': 'application/json',
+        },
+        requests: [
+          {
+            method: 'GET',
+            path: '/api/v1/trades?page=1&limit=50',
+          },
+        ],
       },
-      requests: [
-        {
-          method: 'GET',
-          path: '/api/v1/trades?page=1&limit=50'
-        }
-      ]
-    }, (err, result) => {
-      if (err) throw err;
-      
-      // Performance assertions
-      expect(result.latency.p99).toBeLessThan(500); // 99% under 500ms
-      expect(result.requests.average).toBeGreaterThan(100); // > 100 req/sec
-      expect(result.errors).toBe(0); // No errors
-      expect(result['2xx']).toBe(result.requests.total); // All 200 responses
-    });
+      (err, result) => {
+        if (err) throw err;
+
+        // Performance assertions
+        expect(result.latency.p99).toBeLessThan(500); // 99% under 500ms
+        expect(result.requests.average).toBeGreaterThan(100); // > 100 req/sec
+        expect(result.errors).toBe(0); // No errors
+        expect(result['2xx']).toBe(result.requests.total); // All 200 responses
+      }
+    );
 
     autocannon.track(instance);
   });
@@ -1397,23 +1386,26 @@ describe('API Performance', () => {
       exitPrice: 105,
       quantity: 10,
       entryTimestamp: new Date().toISOString(),
-      exitTimestamp: new Date(Date.now() + 3600000).toISOString()
+      exitTimestamp: new Date(Date.now() + 3600000).toISOString(),
     };
 
-    const instance = autocannon({
-      url: 'http://localhost:3000/api/v1/trades',
-      connections: 50,
-      duration: 60,
-      headers: {
-        'Authorization': `Bearer ${testToken}`,
-        'Content-Type': 'application/json'
+    const instance = autocannon(
+      {
+        url: 'http://localhost:3000/api/v1/trades',
+        connections: 50,
+        duration: 60,
+        headers: {
+          Authorization: `Bearer ${testToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(tradeData),
+        method: 'POST',
       },
-      body: JSON.stringify(tradeData),
-      method: 'POST'
-    }, (err, result) => {
-      expect(result.latency.p95).toBeLessThan(1000); // 95% under 1 second
-      expect(result.errors).toBeLessThan(1); // < 1% error rate
-    });
+      (err, result) => {
+        expect(result.latency.p95).toBeLessThan(1000); // 95% under 1 second
+        expect(result.errors).toBeLessThan(1); // < 1% error rate
+      }
+    );
 
     autocannon.track(instance);
   });
@@ -1433,7 +1425,7 @@ describe('Database Performance', () => {
 
     // Measure performance
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .get('/api/v1/analytics/summary?from=2025-01-01&to=2025-01-31')
       .set('Authorization', `Bearer ${authToken}`);
@@ -1449,9 +1441,9 @@ describe('Database Performance', () => {
   test('should handle large trade imports efficiently', async () => {
     // Create large CSV (10,000 trades)
     const largeCsv = generateLargeCsv(10000);
-    
+
     const startTime = Date.now();
-    
+
     const response = await request(app)
       .post('/api/v1/trades/import')
       .set('Authorization', `Bearer ${authToken}`)
@@ -1462,7 +1454,7 @@ describe('Database Performance', () => {
 
     expect(processingTime).toBeLessThan(5000); // Initial processing < 5 seconds
     expect(response.body.data.jobId).toBeDefined();
-    
+
     // Check job completes within reasonable time
     const jobId = response.body.data.jobId;
     await waitForJobCompletion(jobId, 300000); // 5 minutes max
@@ -1479,18 +1471,18 @@ import { monitorMemoryUsage } from '../../src/utils/memoryMonitor';
 describe('Memory Performance', () => {
   test('should not have memory leaks in trade processing', async () => {
     const initialMemory = process.memoryUsage().heapUsed;
-    
+
     // Process many trades
     for (let i = 0; i < 1000; i++) {
       await processTrade(createRandomTrade());
     }
-    
+
     // Force garbage collection
     if (global.gc) global.gc();
-    
+
     const finalMemory = process.memoryUsage().heapUsed;
     const memoryIncrease = finalMemory - initialMemory;
-    
+
     // Memory increase should be minimal
     expect(memoryIncrease).toBeLessThan(10 * 1024 * 1024); // < 10MB
   });
@@ -1498,9 +1490,9 @@ describe('Memory Performance', () => {
   test('should handle concurrent file uploads without OOM', async () => {
     const concurrentUploads = 50;
     const fileSize = 1024 * 1024; // 1MB
-    
+
     const uploadPromises = [];
-    
+
     for (let i = 0; i < concurrentUploads; i++) {
       uploadPromises.push(
         request(app)
@@ -1509,18 +1501,18 @@ describe('Memory Performance', () => {
           .send({
             filename: `test${i}.png`,
             mimeType: 'image/png',
-            sizeBytes: fileSize
+            sizeBytes: fileSize,
           })
       );
     }
-    
+
     // All should complete successfully
     const results = await Promise.all(uploadPromises);
-    
-    results.forEach(response => {
+
+    results.forEach((response) => {
       expect(response.status).toBe(200);
     });
-    
+
     // Check memory usage
     const memoryUsage = process.memoryUsage();
     expect(memoryUsage.heapUsed).toBeLessThan(500 * 1024 * 1024); // < 500MB
@@ -1552,7 +1544,7 @@ export class TradeFactory {
       exitTimestamp: this.randomFutureDate(),
       notes: this.randomNotes(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
 
     return { ...defaults, ...overrides };
@@ -1560,23 +1552,23 @@ export class TradeFactory {
 
   static createWinningTrade(): Trade {
     const entryPrice = this.randomPrice(100, 150);
-    const exitPrice = entryPrice * (1 + (Math.random() * 0.1)); // 0-10% gain
-    
+    const exitPrice = entryPrice * (1 + Math.random() * 0.1); // 0-10% gain
+
     return this.create({
       side: 'long',
       entryPrice,
-      exitPrice
+      exitPrice,
     });
   }
 
   static createLosingTrade(): Trade {
     const entryPrice = this.randomPrice(100, 150);
-    const exitPrice = entryPrice * (1 - (Math.random() * 0.05)); // 0-5% loss
-    
+    const exitPrice = entryPrice * (1 - Math.random() * 0.05); // 0-5% loss
+
     return this.create({
       side: 'long',
       entryPrice,
-      exitPrice
+      exitPrice,
     });
   }
 
@@ -1618,7 +1610,7 @@ export class TradeFactory {
       'Resistance break',
       'News catalyst',
       'Sector rotation',
-      'Market sentiment'
+      'Market sentiment',
     ];
     return notes[Math.floor(Math.random() * notes.length)];
   }
@@ -1654,13 +1646,13 @@ export class TestCleanup {
       WHERE tenant_id LIKE 'test_%' 
         AND id NOT LIKE 'test_trade_%'
     `);
-    
+
     await db.query(`
       DELETE FROM users 
       WHERE tenant_id LIKE 'test_%' 
         AND id NOT LIKE 'test_user_%'
     `);
-    
+
     await db.query(`
       DELETE FROM tags 
       WHERE tenant_id LIKE 'test_%' 
@@ -1712,7 +1704,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7-alpine
         options: >-
@@ -1725,38 +1717,38 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run linting
         run: npm run lint
-      
+
       - name: Run unit tests
         run: npm run test:unit
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_tradingjournal
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-secret
-      
+
       - name: Run integration tests
         run: npm run test:integration
-      
+
       - name: Run security tests
         run: npm run test:security
-      
+
       - name: Upload test coverage
         uses: codecov/codecov-action@v3
         with:
           file: ./coverage/lcov.info
           fail_ci_if_error: true
-      
+
       - name: Upload test results
         uses: actions/upload-artifact@v3
         if: always()
@@ -1785,33 +1777,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      
+
       - name: Run full test suite
         run: npm run test:all
-      
+
       - name: Build Docker image
         run: |
           docker build -t tradingjournal/api:${{ github.sha }} .
           docker build -t tradingjournal/api:latest .
-      
+
       - name: Run security scan
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'tradingjournal/api:${{ github.sha }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
-      
+
       - name: Upload security results
         uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
-      
+
       - name: Deploy to staging
         if: github.ref == 'refs/heads/main'
         run: |
           # Deploy to staging environment
           echo "Deploying to staging..."
-      
+
       - name: Deploy to production
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
@@ -1827,24 +1819,24 @@ jobs:
 
 ### 11.1 Test Coverage Requirements
 
-| Component | Minimum Coverage | Target Coverage |
-|-----------|------------------|-----------------|
-| **API Controllers** | 90% | 95% |
-| **Business Logic** | 85% | 90% |
-| **Database Layer** | 80% | 85% |
-| **Utility Functions** | 90% | 95% |
-| **Security Middleware** | 95% | 100% |
-| **Overall** | 85% | 90% |
+| Component               | Minimum Coverage | Target Coverage |
+| ----------------------- | ---------------- | --------------- |
+| **API Controllers**     | 90%              | 95%             |
+| **Business Logic**      | 85%              | 90%             |
+| **Database Layer**      | 80%              | 85%             |
+| **Utility Functions**   | 90%              | 95%             |
+| **Security Middleware** | 95%              | 100%            |
+| **Overall**             | 85%              | 90%             |
 
 ### 11.2 Performance Benchmarks
 
-| Endpoint | Maximum Response Time | Target Throughput |
-|----------|----------------------|-------------------|
-| `GET /trades` | 200ms | 1000 req/sec |
-| `POST /trades` | 500ms | 500 req/sec |
-| `GET /analytics/summary` | 500ms (first), 50ms (cached) | 200 req/sec |
-| `POST /auth/login` | 300ms | 100 req/sec |
-| `GET /users/me` | 100ms | 2000 req/sec |
+| Endpoint                 | Maximum Response Time        | Target Throughput |
+| ------------------------ | ---------------------------- | ----------------- |
+| `GET /trades`            | 200ms                        | 1000 req/sec      |
+| `POST /trades`           | 500ms                        | 500 req/sec       |
+| `GET /analytics/summary` | 500ms (first), 50ms (cached) | 200 req/sec       |
+| `POST /auth/login`       | 300ms                        | 100 req/sec       |
+| `GET /users/me`          | 100ms                        | 2000 req/sec      |
 
 ### 11.3 Quality Gates
 
@@ -1854,19 +1846,19 @@ quality_gates:
   test_coverage:
     minimum: 85%
     critical: 80%
-  
+
   test_passing:
     minimum: 95%
     critical: 90%
-  
+
   security_issues:
     critical: 0
     high: 0
     medium: < 5
-  
+
   performance_regression:
-    threshold: 20%  # No more than 20% regression
-  
+    threshold: 20% # No more than 20% regression
+
   deployment_frequency:
     target: daily
     minimum: weekly
@@ -1878,18 +1870,18 @@ quality_gates:
 
 ### 12.1 Tool Stack
 
-| Testing Type | Tools | Purpose |
-|-------------|-------|---------|
-| **Unit Testing** | Jest, ts-jest | JavaScript/TypeScript testing |
-| **API Testing** | Supertest, nock | HTTP API testing |
-| **Database Testing** | pg-mem, testcontainers | Database testing |
-| **E2E Testing** | Playwright, Cypress | Browser automation |
-| **Performance Testing** | k6, autocannon | Load and stress testing |
-| **Security Testing** | OWASP ZAP, Snyk | Vulnerability scanning |
-| **Mocking** | jest-mock-extended, msw | API mocking |
-| **Code Coverage** | Istanbul, nyc | Coverage reporting |
-| **Linting** | ESLint, Prettier | Code quality |
-| **Type Checking** | TypeScript | Static type checking |
+| Testing Type            | Tools                   | Purpose                       |
+| ----------------------- | ----------------------- | ----------------------------- |
+| **Unit Testing**        | Jest, ts-jest           | JavaScript/TypeScript testing |
+| **API Testing**         | Supertest, nock         | HTTP API testing              |
+| **Database Testing**    | pg-mem, testcontainers  | Database testing              |
+| **E2E Testing**         | Playwright, Cypress     | Browser automation            |
+| **Performance Testing** | k6, autocannon          | Load and stress testing       |
+| **Security Testing**    | OWASP ZAP, Snyk         | Vulnerability scanning        |
+| **Mocking**             | jest-mock-extended, msw | API mocking                   |
+| **Code Coverage**       | Istanbul, nyc           | Coverage reporting            |
+| **Linting**             | ESLint, Prettier        | Code quality                  |
+| **Type Checking**       | TypeScript              | Static type checking          |
 
 ### 12.2 Test Configuration
 
@@ -1900,19 +1892,14 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>/src', '<rootDir>/tests'],
   testMatch: ['**/*.test.ts', '**/*.spec.ts'],
-  collectCoverageFrom: [
-    'src/**/*.ts',
-    '!src/**/*.d.ts',
-    '!src/**/index.ts',
-    '!src/**/types.ts'
-  ],
+  collectCoverageFrom: ['src/**/*.ts', '!src/**/*.d.ts', '!src/**/index.ts', '!src/**/types.ts'],
   coverageThreshold: {
     global: {
       branches: 85,
       functions: 90,
       lines: 90,
-      statements: 90
-    }
+      statements: 90,
+    },
   },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.ts'],
   globalTeardown: '<rootDir>/tests/teardown.ts',
@@ -1921,8 +1908,8 @@ module.exports = {
   verbose: true,
   reporters: [
     'default',
-    ['jest-junit', { outputDirectory: 'test-results', outputName: 'junit.xml' }]
-  ]
+    ['jest-junit', { outputDirectory: 'test-results', outputName: 'junit.xml' }],
+  ],
 };
 ```
 
@@ -1965,7 +1952,7 @@ critical_path:
     - JWT token generation and validation
     - Refresh token flow
     - Password reset functionality
-  
+
   trade_management:
     - Create trade with all required fields
     - Calculate PnL correctly for long trades
@@ -1975,7 +1962,7 @@ critical_path:
     - Update trade information
     - Soft delete trade
     - Hard delete trade (admin only)
-  
+
   analytics:
     - Summary statistics calculation
     - Equity curve generation
@@ -1983,7 +1970,7 @@ critical_path:
     - Win rate calculation accuracy
     - Profit factor calculation
     - Cache invalidation on data change
-  
+
   security:
     - Tenant data isolation
     - Role-based access control
@@ -2004,7 +1991,7 @@ edge_cases:
     - Very large quantities
     - Very small prices
     - Identical entry and exit prices
-  
+
   date_time:
     - Trades spanning midnight
     - Trades across DST changes
@@ -2012,7 +1999,7 @@ edge_cases:
     - Future-dated trades
     - Very old trades
     - Same timestamp for entry and exit
-  
+
   file_uploads:
     - Empty files
     - Very large files (>5MB)
@@ -2020,7 +2007,7 @@ edge_cases:
     - Multiple files with same name
     - Upload cancellation
     - Network interruption during upload
-  
+
   api_limits:
     - Exactly at rate limit threshold
     - Burst requests

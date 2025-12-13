@@ -27,6 +27,7 @@
 ### 1.1 Cloud Provider Architecture
 
 **Multi-Cloud Strategy:**
+
 ```
 Primary: Vercel (Frontend + API)
 Database: Neon (PostgreSQL)
@@ -49,7 +50,7 @@ provider "aws" {
 # S3 Bucket for file uploads
 resource "aws_s3_bucket" "uploads" {
   bucket = "tradingjournal-uploads-${var.environment}"
-  
+
   tags = {
     Environment = var.environment
     Project     = "trading-journal"
@@ -62,21 +63,21 @@ resource "aws_cloudfront_distribution" "uploads_cdn" {
     domain_name = aws_s3_bucket.uploads.bucket_regional_domain_name
     origin_id   = "S3-${aws_s3_bucket.uploads.id}"
   }
-  
+
   enabled = true
-  
+
   default_cache_behavior {
     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
     cached_methods   = ["GET", "HEAD"]
     target_origin_id = "S3-${aws_s3_bucket.uploads.id}"
-    
+
     forwarded_values {
       query_string = false
       cookies {
         forward = "none"
       }
     }
-    
+
     viewer_protocol_policy = "redirect-to-https"
   }
 }
@@ -101,12 +102,12 @@ Internet → Cloudflare WAF → Vercel Edge Network
 
 ### 2.1 Environment Hierarchy
 
-| Environment | Purpose | URL | Database | Auto-Deploy |
-|-------------|---------|-----|----------|-------------|
-| **Local** | Development | localhost:3000 | Local Postgres | Manual |
-| **Preview** | PR previews | pr-123.vercel.app | Neon branch | On PR |
-| **Staging** | Pre-production | staging.tradingjournal.com | Neon staging | On merge to develop |
-| **Production** | Live | tradingjournal.com | Neon production | On tag release |
+| Environment    | Purpose        | URL                        | Database        | Auto-Deploy         |
+| -------------- | -------------- | -------------------------- | --------------- | ------------------- |
+| **Local**      | Development    | localhost:3000             | Local Postgres  | Manual              |
+| **Preview**    | PR previews    | pr-123.vercel.app          | Neon branch     | On PR               |
+| **Staging**    | Pre-production | staging.tradingjournal.com | Neon staging    | On merge to develop |
+| **Production** | Live           | tradingjournal.com         | Neon production | On tag release      |
 
 ### 2.2 Environment Configuration
 
@@ -163,6 +164,7 @@ feature/* (preview environments)
 ```
 
 **Branch Protection Rules:**
+
 - `main`: Require 2 approvals, all checks pass, signed commits
 - `develop`: Require 1 approval, all checks pass
 - `feature/*`: No restrictions, but checks must pass
@@ -193,26 +195,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run ESLint
         run: npm run lint
-      
+
       - name: Run TypeScript type check
         run: npm run type-check
 
   test:
     runs-on: ubuntu-latest
     needs: lint-and-typecheck
-    
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -227,7 +229,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7-alpine
         options: >-
@@ -237,33 +239,33 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-    
+
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Run database migrations
         run: npm run db:migrate
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
-      
+
       - name: Run unit tests
         run: npm run test:unit
-      
+
       - name: Run integration tests
         run: npm run test:integration
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
           REDIS_URL: redis://localhost:6379
-      
+
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
@@ -275,12 +277,12 @@ jobs:
     needs: lint-and-typecheck
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Run Snyk security scan
         uses: snyk/actions/node@master
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      
+
       - name: Run npm audit
         run: npm audit --audit-level=high
 
@@ -289,19 +291,19 @@ jobs:
     needs: [test, security-scan]
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-      
+
       - name: Install dependencies
         run: npm ci
-      
+
       - name: Build application
         run: npm run build
-      
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v3
         with:
@@ -314,7 +316,7 @@ jobs:
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Deploy to Vercel Preview
         uses: amondnet/vercel-action@v20
         with:
@@ -333,7 +335,7 @@ jobs:
       url: https://staging.tradingjournal.com
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Deploy to Vercel Staging
         uses: amondnet/vercel-action@v20
         with:
@@ -342,12 +344,12 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
           alias-domains: staging.tradingjournal.com
-      
+
       - name: Run smoke tests
         run: npm run test:smoke
         env:
           TEST_URL: https://staging.tradingjournal.com
-      
+
       - name: Notify team on Slack
         uses: 8398a7/action-slack@v3
         with:
@@ -364,12 +366,12 @@ jobs:
       url: https://tradingjournal.com
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Run database migrations
         run: npm run db:migrate:production
         env:
           DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
-      
+
       - name: Deploy to Vercel Production
         uses: amondnet/vercel-action@v20
         with:
@@ -378,16 +380,16 @@ jobs:
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           vercel-args: '--prod'
           alias-domains: tradingjournal.com
-      
+
       - name: Verify deployment health
         run: |
           curl -f https://tradingjournal.com/api/health || exit 1
-      
+
       - name: Tag release
         run: |
           git tag -a "v${{ github.run_number }}" -m "Production release"
           git push origin "v${{ github.run_number }}"
-      
+
       - name: Create Sentry release
         run: |
           curl -X POST \
@@ -398,7 +400,7 @@ jobs:
               "version": "v${{ github.run_number }}",
               "projects": ["trading-journal"]
             }'
-      
+
       - name: Notify team on Slack
         uses: 8398a7/action-slack@v3
         with:
@@ -414,7 +416,7 @@ jobs:
 if [ $(curl -s -o /dev/null -w "%{http_code}" https://tradingjournal.com/api/health) -ne 200 ]; then
   echo "Health check failed, rolling back..."
   vercel rollback --token=$VERCEL_TOKEN
-  
+
   # Notify team
   curl -X POST $SLACK_WEBHOOK \
     -H 'Content-Type: application/json' \
@@ -487,7 +489,7 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/tradingjournal
       - REDIS_URL=redis://redis:6379
@@ -501,7 +503,7 @@ services:
   db:
     image: postgres:15-alpine
     ports:
-      - "5432:5432"
+      - '5432:5432'
     environment:
       - POSTGRES_DB=tradingjournal
       - POSTGRES_USER=postgres
@@ -512,15 +514,15 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
 
   mailhog:
     image: mailhog/mailhog
     ports:
-      - "1025:1025" # SMTP
-      - "8025:8025" # Web UI
+      - '1025:1025' # SMTP
+      - '8025:8025' # Web UI
 
 volumes:
   postgres_data:
@@ -544,39 +546,40 @@ npm run db:reset      # Drop all tables and reapply migrations
 ### 5.2 Zero-Downtime Migrations
 
 **Backward-Compatible Changes:**
+
 ```typescript
 // Step 1: Add new column (nullable)
-await db.schema.alterTable('trades')
-  .addColumn('new_column', 'varchar(255)')
-  .execute();
+await db.schema.alterTable('trades').addColumn('new_column', 'varchar(255)').execute();
 
 // Step 2: Deploy code that uses new column (but handles null)
 // ... deploy ...
 
 // Step 3: Backfill data
-await db.updateTable('trades')
+await db
+  .updateTable('trades')
   .set({ new_column: db.raw('old_column') })
   .execute();
 
 // Step 4: Make column non-nullable
-await db.schema.alterTable('trades')
+await db.schema
+  .alterTable('trades')
   .alterColumn('new_column', (col) => col.setNotNull())
   .execute();
 
 // Step 5: Drop old column (after confirming everything works)
-await db.schema.alterTable('trades')
-  .dropColumn('old_column')
-  .execute();
+await db.schema.alterTable('trades').dropColumn('old_column').execute();
 ```
 
 ### 5.3 Database Backup Strategy
 
 **Neon Automated Backups:**
+
 - Point-in-time recovery (7 days for free, 30 days for paid)
 - Automated daily snapshots
 - Branch-based workflow for testing migrations
 
 **Manual Backup Script:**
+
 ```bash
 #!/bin/bash
 # backup.sh
@@ -611,9 +614,9 @@ export async function GET() {
   const checks = {
     database: false,
     redis: false,
-    storage: false
+    storage: false,
   };
-  
+
   try {
     // Database check
     await db.raw('SELECT 1');
@@ -621,7 +624,7 @@ export async function GET() {
   } catch (error) {
     console.error('Database health check failed:', error);
   }
-  
+
   try {
     // Redis check
     await redis.ping();
@@ -629,7 +632,7 @@ export async function GET() {
   } catch (error) {
     console.error('Redis health check failed:', error);
   }
-  
+
   try {
     // S3 check
     await s3.listBuckets();
@@ -637,15 +640,18 @@ export async function GET() {
   } catch (error) {
     console.error('Storage health check failed:', error);
   }
-  
-  const healthy = Object.values(checks).every(check => check === true);
+
+  const healthy = Object.values(checks).every((check) => check === true);
   const status = healthy ? 200 : 503;
-  
-  return Response.json({
-    status: healthy ? 'healthy' : 'degraded',
-    checks,
-    timestamp: new Date().toISOString()
-  }, { status });
+
+  return Response.json(
+    {
+      status: healthy ? 'healthy' : 'degraded',
+      checks,
+      timestamp: new Date().toISOString(),
+    },
+    { status }
+  );
 }
 ```
 
@@ -662,7 +668,7 @@ export const httpRequestDuration = new promClient.Histogram({
   name: 'http_request_duration_seconds',
   help: 'Duration of HTTP requests in seconds',
   labelNames: ['method', 'route', 'status'],
-  registers: [register]
+  registers: [register],
 });
 
 // Database query duration
@@ -670,7 +676,7 @@ export const dbQueryDuration = new promClient.Histogram({
   name: 'db_query_duration_seconds',
   help: 'Duration of database queries in seconds',
   labelNames: ['operation', 'table'],
-  registers: [register]
+  registers: [register],
 });
 
 // Active subscriptions
@@ -678,7 +684,7 @@ export const activeSubscriptions = new promClient.Gauge({
   name: 'active_subscriptions_total',
   help: 'Number of active subscriptions by plan',
   labelNames: ['plan'],
-  registers: [register]
+  registers: [register],
 });
 
 // Cache hit rate
@@ -686,14 +692,14 @@ export const cacheHits = new promClient.Counter({
   name: 'cache_hits_total',
   help: 'Total number of cache hits',
   labelNames: ['cache_key'],
-  registers: [register]
+  registers: [register],
 });
 
 export const cacheMisses = new promClient.Counter({
   name: 'cache_misses_total',
   help: 'Total number of cache misses',
   labelNames: ['cache_key'],
-  registers: [register]
+  registers: [register],
 });
 ```
 
@@ -755,16 +761,17 @@ export const cacheMisses = new promClient.Counter({
 
 ### 7.1 Recovery Time Objective (RTO) & Recovery Point Objective (RPO)
 
-| Component | RPO | RTO | Strategy |
-|-----------|-----|-----|----------|
-| **Database** | 5 minutes | 30 minutes | Neon point-in-time recovery |
-| **Redis Cache** | N/A (ephemeral) | 5 minutes | Rebuild from database |
-| **File Storage** | 24 hours | 2 hours | S3 versioning + cross-region replication |
-| **Application** | N/A (stateless) | 5 minutes | Vercel automatic rollback |
+| Component        | RPO             | RTO        | Strategy                                 |
+| ---------------- | --------------- | ---------- | ---------------------------------------- |
+| **Database**     | 5 minutes       | 30 minutes | Neon point-in-time recovery              |
+| **Redis Cache**  | N/A (ephemeral) | 5 minutes  | Rebuild from database                    |
+| **File Storage** | 24 hours        | 2 hours    | S3 versioning + cross-region replication |
+| **Application**  | N/A (stateless) | 5 minutes  | Vercel automatic rollback                |
 
 ### 7.2 Disaster Recovery Plan
 
 **Scenario 1: Database Corruption**
+
 ```bash
 # 1. Identify corruption time
 CORRUPTION_TIME="2025-12-09 10:30:00 UTC"
@@ -786,6 +793,7 @@ neon branches promote new-branch-id
 ```
 
 **Scenario 2: Complete AWS Region Failure**
+
 ```bash
 # 1. Activate secondary region (if configured)
 terraform workspace select secondary-region
@@ -814,23 +822,26 @@ vercel --prod
 ### 8.1 Horizontal Scaling
 
 **Vercel Automatic Scaling:**
+
 - Scales automatically based on request volume
 - Edge functions deployed globally
 - No manual configuration required
 
 **Database Scaling (Neon):**
+
 ```yaml
 # Autoscaling configuration
 autoscaling:
-  min_compute_units: 0.25  # Scale to zero when idle
-  max_compute_units: 4     # Max for production
-  scale_up_threshold: 75%  # CPU utilization
-  scale_down_delay: 300s   # Wait before scaling down
+  min_compute_units: 0.25 # Scale to zero when idle
+  max_compute_units: 4 # Max for production
+  scale_up_threshold: 75% # CPU utilization
+  scale_down_delay: 300s # Wait before scaling down
 ```
 
 ### 8.2 Caching Strategy
 
 **Multi-Level Caching:**
+
 ```
 Browser Cache (static assets, 1 year)
     ↓
@@ -854,18 +865,18 @@ export const options = {
     { duration: '5m', target: 100 }, // Stay at 100 users
     { duration: '2m', target: 200 }, // Ramp up to 200 users
     { duration: '5m', target: 200 }, // Stay at 200 users
-    { duration: '2m', target: 0 },   // Ramp down to 0 users
+    { duration: '2m', target: 0 }, // Ramp down to 0 users
   ],
   thresholds: {
     http_req_duration: ['p(95)<500'], // 95% of requests < 500ms
-    http_req_failed: ['rate<0.01'],   // Error rate < 1%
+    http_req_failed: ['rate<0.01'], // Error rate < 1%
   },
 };
 
 export default function () {
   const response = http.get('https://tradingjournal.com/api/v1/trades', {
     headers: {
-      'Authorization': `Bearer ${__ENV.TEST_TOKEN}`,
+      Authorization: `Bearer ${__ENV.TEST_TOKEN}`,
     },
   });
 
@@ -943,34 +954,38 @@ echo "JWT secret rotated successfully"
 
 ### 10.1 Cost Breakdown (Monthly)
 
-| Service | Free Tier | Pro Usage | Cost |
-|---------|-----------|-----------|------|
-| **Vercel** | 100GB bandwidth | 1TB bandwidth | $20 |
-| **Neon Database** | 0.5 GB storage | 10 GB storage | $19 |
-| **Upstash Redis** | 10k commands/day | 1M commands/day | $30 |
-| **AWS S3** | 5 GB storage | 100 GB storage | $3 |
-| **CloudFlare** | Unlimited bandwidth | CDN + WAF | $0 (free tier) |
-| **Sentry** | 5k events/mo | 50k events/mo | $26 |
-| **Total** | | | **$98/month** |
+| Service           | Free Tier           | Pro Usage       | Cost           |
+| ----------------- | ------------------- | --------------- | -------------- |
+| **Vercel**        | 100GB bandwidth     | 1TB bandwidth   | $20            |
+| **Neon Database** | 0.5 GB storage      | 10 GB storage   | $19            |
+| **Upstash Redis** | 10k commands/day    | 1M commands/day | $30            |
+| **AWS S3**        | 5 GB storage        | 100 GB storage  | $3             |
+| **CloudFlare**    | Unlimited bandwidth | CDN + WAF       | $0 (free tier) |
+| **Sentry**        | 5k events/mo        | 50k events/mo   | $26            |
+| **Total**         |                     |                 | **$98/month**  |
 
 ### 10.2 Cost Optimization Strategies
 
 **Database:**
+
 - Use Neon's scale-to-zero for development environments
 - Implement connection pooling to reduce compute usage
 - Archive old data to cheaper storage (S3 Glacier)
 
 **Caching:**
+
 - Aggressive Redis caching to reduce database queries
 - CDN caching for static assets and images
 - Client-side caching with SWR
 
 **Monitoring:**
+
 - Use sampling for high-volume metrics
 - Retain logs for 30 days, archive to S3 for long-term storage
 - Use log aggregation to reduce ingestion costs
 
 **Compute:**
+
 - Optimize serverless function cold starts
 - Use edge functions for frequently accessed endpoints
 - Implement request batching where possible
@@ -980,6 +995,7 @@ echo "JWT secret rotated successfully"
 ## Deployment Checklist
 
 ### Pre-Deployment
+
 - [ ] All tests passing (unit, integration, E2E)
 - [ ] Security scan completed with no critical issues
 - [ ] Database migrations tested in staging
@@ -988,6 +1004,7 @@ echo "JWT secret rotated successfully"
 - [ ] Backup verified and restorable
 
 ### During Deployment
+
 - [ ] Database migrations applied successfully
 - [ ] Application deployed to production
 - [ ] Health checks passing
@@ -995,6 +1012,7 @@ echo "JWT secret rotated successfully"
 - [ ] Monitoring dashboards updated
 
 ### Post-Deployment
+
 - [ ] Smoke tests completed successfully
 - [ ] Error rates within acceptable limits
 - [ ] Performance metrics within SLA

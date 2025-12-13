@@ -1,1360 +1,708 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-    
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Trading Journal - Architecture Diagrams</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f7fa;
-            color: #2c3e50;
-        }
-        h1 {
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-            margin-bottom: 30px;
-        }
-        h2 {
-            color: #34495e;
-            margin-top: 40px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3498db;
-            padding-left: 15px;
-        }
-        .diagram-container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            margin-bottom: 40px;
-        }
-        .description {
-            background: #ecf0f1;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
-            border-left: 4px solid #3498db;
-        }
-        .mermaid {
-            text-align: center;
-        }
-        .legend {
-            background: #fff3cd;
-            padding: 15px;
-            border-radius: 5px;
-            margin-top: 20px;
-            border-left: 4px solid #ffc107;
-        }
-        .legend h4 {
-            margin-top: 0;
-            color: #856404;
-        }
-        .legend ul {
-            margin: 0;
-            padding-left: 20px;
-        }
-        code {
-            background: #f8f9fa;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Courier New', monospace;
-            color: #e83e8c;
-        }
+      body {
+        font-family:
+          -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
+          sans-serif;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f7fa;
+        color: #2c3e50;
+      }
+      h1 {
+        color: #2c3e50;
+        border-bottom: 3px solid #3498db;
+        padding-bottom: 10px;
+        margin-bottom: 30px;
+      }
+      h2 {
+        color: #34495e;
+        margin-top: 40px;
+        margin-bottom: 20px;
+        border-left: 4px solid #3498db;
+        padding-left: 15px;
+      }
+      .diagram-container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 40px;
+      }
+      .description {
+        background: #ecf0f1;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        border-left: 4px solid #3498db;
+      }
+      .mermaid {
+        text-align: center;
+      }
+      .legend {
+        background: #fff3cd;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+        border-left: 4px solid #ffc107;
+      }
+      .legend h4 {
+        margin-top: 0;
+        color: #856404;
+      }
+      .legend ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+      code {
+        background: #f8f9fa;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: 'Monaco', 'Courier New', monospace;
+        color: #e83e8c;
+      }
     </style>
-</head>
-<body>
-    
+  </head>
+  <body>
     <h1>📊 Trading Journal - System Architecture Diagrams</h1>
     <p><strong>Version:</strong> 1.0 | <strong>Last Updated:</strong> December 9, 2025</p>
 
     <!-- 1. HIGH-LEVEL SYSTEM ARCHITECTURE -->
     <h2>1. High-Level System Architecture</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Overview:</strong> Complete system architecture showing all major components, services, and data flows. This represents the production architecture for the SaaS version.
-        </div>
-        <div class="mermaid">
-graph TB
-    subgraph "Client Layer"
-        Web[🌐 Web Browser]
-        Mobile[📱 Mobile Browser]
-    end
-    
-    subgraph "CDN & Security"
-        CF[☁️ Cloudflare<br/>WAF + DDoS Protection]
-    end
-    
-    subgraph "Application Layer - Vercel"
-        Next[⚡ Next.js Application<br/>API Routes + SSR]
-        Edge[🌍 Edge Functions<br/>Authentication Middleware]
-    end
-    
-    subgraph "Data Layer"
-        Neon[(🗄️ Neon PostgreSQL<br/>Primary Database)]
-        Redis[(⚡ Upstash Redis<br/>Cache + Sessions)]
-        S3[☁️ AWS S3<br/>File Storage]
-    end
-    
-    subgraph "Background Processing"
-        Queue[📬 BullMQ Queue<br/>Job Processing]
-        Worker[⚙️ Worker Processes<br/>CSV Import, Reports]
-    end
-    
-    subgraph "External Services"
-        Razorpay[💳 Razorpay<br/>Payments]
-        Email[📧 SendGrid<br/>Email Service]
-        Sentry[🔍 Sentry<br/>Error Tracking]
-    end
-    
-    Web --> CF
-    Mobile --> CF
-    CF --> Next
-    Next --> Edge
-    Edge --> Neon
-    Edge --> Redis
-    Next --> S3
-    Next --> Queue
-    Queue --> Worker
-    Worker --> Neon
-    Worker --> S3
-    Next --> Razorpay
-    Next --> Email
-    Next --> Sentry
-    
-    style Web fill:#e3f2fd
-    style Mobile fill:#e3f2fd
-    style CF fill:#fff3e0
-    style Next fill:#e8f5e9
-    style Edge fill:#e8f5e9
-    style Neon fill:#f3e5f5
-    style Redis fill:#ffebee
-    style S3 fill:#e0f2f1
-    style Queue fill:#fce4ec
-    style Worker fill:#fce4ec
-    style Razorpay fill:#fff9c4
-    style Email fill:#fff9c4
-    style Sentry fill:#fff9c4
-        </div>
-        <div class="legend">
-            <h4>Key Components:</h4>
-            <ul>
-                <li><strong>Cloudflare:</strong> Web Application Firewall, DDoS protection, global CDN</li>
-                <li><strong>Next.js:</strong> Full-stack framework hosting both frontend and API</li>
-                <li><strong>Neon:</strong> Serverless PostgreSQL with autoscaling</li>
-                <li><strong>Upstash Redis:</strong> Cache layer and session storage</li>
-                <li><strong>BullMQ:</strong> Job queue for async processing (CSV imports, reports)</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Overview:</strong> Complete system architecture showing all major components,
+        services, and data flows. This represents the production architecture for the SaaS version.
+      </div>
+      <div class="mermaid">
+        graph TB subgraph "Client Layer" Web[🌐 Web Browser] Mobile[📱 Mobile Browser] end subgraph
+        "CDN & Security" CF[☁️ Cloudflare<br />WAF + DDoS Protection] end subgraph "Application
+        Layer - Vercel" Next[⚡ Next.js Application<br />API Routes + SSR] Edge[🌍 Edge Functions<br />Authentication
+        Middleware] end subgraph "Data Layer" Neon[(🗄️ Neon PostgreSQL<br />Primary Database)]
+        Redis[(⚡ Upstash Redis<br />Cache + Sessions)] S3[☁️ AWS S3<br />File Storage] end subgraph
+        "Background Processing" Queue[📬 BullMQ Queue<br />Job Processing] Worker[⚙️ Worker
+        Processes<br />CSV Import, Reports] end subgraph "External Services" Razorpay[💳 Razorpay<br />Payments]
+        Email[📧 SendGrid<br />Email Service] Sentry[🔍 Sentry<br />Error Tracking] end Web --> CF
+        Mobile --> CF CF --> Next Next --> Edge Edge --> Neon Edge --> Redis Next --> S3 Next -->
+        Queue Queue --> Worker Worker --> Neon Worker --> S3 Next --> Razorpay Next --> Email Next
+        --> Sentry style Web fill:#e3f2fd style Mobile fill:#e3f2fd style CF fill:#fff3e0 style Next
+        fill:#e8f5e9 style Edge fill:#e8f5e9 style Neon fill:#f3e5f5 style Redis fill:#ffebee style
+        S3 fill:#e0f2f1 style Queue fill:#fce4ec style Worker fill:#fce4ec style Razorpay
+        fill:#fff9c4 style Email fill:#fff9c4 style Sentry fill:#fff9c4
+      </div>
+      <div class="legend">
+        <h4>Key Components:</h4>
+        <ul>
+          <li>
+            <strong>Cloudflare:</strong> Web Application Firewall, DDoS protection, global CDN
+          </li>
+          <li><strong>Next.js:</strong> Full-stack framework hosting both frontend and API</li>
+          <li><strong>Neon:</strong> Serverless PostgreSQL with autoscaling</li>
+          <li><strong>Upstash Redis:</strong> Cache layer and session storage</li>
+          <li><strong>BullMQ:</strong> Job queue for async processing (CSV imports, reports)</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 2. DATA FLOW ARCHITECTURE -->
     <h2>2. Request Flow - Trade Creation</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Scenario:</strong> User creates a new trade showing complete data flow through all system layers with validation, authentication, and caching.
-        </div>
-        <div class="mermaid">
-sequenceDiagram
-    actor User
-    participant Browser
-    participant CF as Cloudflare
-    participant Next as Next.js API
-    participant Auth as Auth Middleware
-    participant Redis as Redis Cache
-    participant Valid as Validator
-    participant DB as PostgreSQL
-    participant S3 as S3 Storage
-    
-    User->>Browser: Fill trade form
-    Browser->>Browser: Client-side validation
-    Browser->>CF: POST /api/v1/trades
-    CF->>CF: Check WAF rules
-    CF->>Next: Forward request
-    Next->>Auth: Verify JWT token
-    Auth->>Redis: Check token validity
-    Redis-->>Auth: Token valid
-    Auth-->>Next: User authenticated
-    Next->>Valid: Validate trade data (Zod)
-    Valid-->>Next: Validation passed
-    Next->>DB: INSERT INTO trades
-    DB-->>Next: Trade created (ID: trade_123)
-    Next->>DB: Calculate PnL
-    DB-->>Next: PnL computed
-    Next->>Redis: Invalidate analytics cache
-    Redis-->>Next: Cache cleared
-    Next->>Browser: 201 Created {trade data}
-    Browser->>User: Show success message
-    
-    opt User uploads screenshot
-        Browser->>Next: Request presigned URL
-        Next->>S3: Generate presigned URL
-        S3-->>Next: URL (expires 5 min)
-        Next-->>Browser: Presigned URL
-        Browser->>S3: Upload file directly
-        S3-->>Browser: Upload success
-        Browser->>Next: Confirm upload
-        Next->>DB: Save upload metadata
-    end
-        </div>
-        <div class="legend">
-            <h4>Security Layers:</h4>
-            <ul>
-                <li><strong>Layer 1:</strong> Cloudflare WAF blocks malicious requests</li>
-                <li><strong>Layer 2:</strong> JWT authentication verifies user identity</li>
-                <li><strong>Layer 3:</strong> Zod schema validation ensures data integrity</li>
-                <li><strong>Layer 4:</strong> Database constraints prevent invalid data</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Scenario:</strong> User creates a new trade showing complete data flow through all
+        system layers with validation, authentication, and caching.
+      </div>
+      <div class="mermaid">
+        sequenceDiagram actor User participant Browser participant CF as Cloudflare participant Next
+        as Next.js API participant Auth as Auth Middleware participant Redis as Redis Cache
+        participant Valid as Validator participant DB as PostgreSQL participant S3 as S3 Storage
+        User->>Browser: Fill trade form Browser->>Browser: Client-side validation Browser->>CF: POST
+        /api/v1/trades CF->>CF: Check WAF rules CF->>Next: Forward request Next->>Auth: Verify JWT
+        token Auth->>Redis: Check token validity Redis-->>Auth: Token valid Auth-->>Next: User
+        authenticated Next->>Valid: Validate trade data (Zod) Valid-->>Next: Validation passed
+        Next->>DB: INSERT INTO trades DB-->>Next: Trade created (ID: trade_123) Next->>DB: Calculate
+        PnL DB-->>Next: PnL computed Next->>Redis: Invalidate analytics cache Redis-->>Next: Cache
+        cleared Next->>Browser: 201 Created {trade data} Browser->>User: Show success message opt
+        User uploads screenshot Browser->>Next: Request presigned URL Next->>S3: Generate presigned
+        URL S3-->>Next: URL (expires 5 min) Next-->>Browser: Presigned URL Browser->>S3: Upload file
+        directly S3-->>Browser: Upload success Browser->>Next: Confirm upload Next->>DB: Save upload
+        metadata end
+      </div>
+      <div class="legend">
+        <h4>Security Layers:</h4>
+        <ul>
+          <li><strong>Layer 1:</strong> Cloudflare WAF blocks malicious requests</li>
+          <li><strong>Layer 2:</strong> JWT authentication verifies user identity</li>
+          <li><strong>Layer 3:</strong> Zod schema validation ensures data integrity</li>
+          <li><strong>Layer 4:</strong> Database constraints prevent invalid data</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 3. AUTHENTICATION FLOW -->
     <h2>3. Authentication & Authorization Flow</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>JWT-based authentication</strong> with access and refresh tokens. Implements secure token refresh mechanism with Redis-backed token revocation.
-        </div>
-        <div class="mermaid">
-sequenceDiagram
-    actor User
-    participant Browser
-    participant API as Next.js API
-    participant DB as PostgreSQL
-    participant Redis
-    
-    rect rgb(230, 245, 255)
-        Note over User,Redis: Login Flow
-        User->>Browser: Enter credentials
-        Browser->>API: POST /auth/login
-        API->>DB: Verify email/password
-        DB-->>API: User found, password valid
-        API->>API: Generate JWT tokens
-        API->>Redis: Store refresh token
-        API-->>Browser: Access token (15 min)<br/>Refresh token (HTTP-only cookie)
-        Browser-->>User: Redirect to dashboard
-    end
-    
-    rect rgb(255, 245, 230)
-        Note over User,Redis: API Request (Authenticated)
-        User->>Browser: View trades
-        Browser->>API: GET /api/v1/trades<br/>Authorization: Bearer {access_token}
-        API->>API: Verify JWT signature
-        API->>API: Check expiration
-        API-->>Browser: 200 OK {trades}
-    end
-    
-    rect rgb(255, 230, 230)
-        Note over User,Redis: Token Refresh Flow
-        Browser->>Browser: Access token expired
-        Browser->>API: POST /auth/refresh<br/>Cookie: refresh_token
-        API->>Redis: Validate refresh token
-        Redis-->>API: Token valid
-        API->>API: Generate new access token
-        API-->>Browser: New access token
-        Browser->>Browser: Retry original request
-    end
-    
-    rect rgb(230, 255, 230)
-        Note over User,Redis: Logout Flow
-        User->>Browser: Click logout
-        Browser->>API: POST /auth/logout
-        API->>Redis: Revoke refresh token
-        Redis-->>API: Token revoked
-        API-->>Browser: 200 OK
-        Browser->>Browser: Clear local tokens
-        Browser-->>User: Redirect to login
-    end
-        </div>
-        <div class="legend">
-            <h4>Token Security:</h4>
-            <ul>
-                <li><strong>Access Token:</strong> Short-lived (15 min), stored in memory</li>
-                <li><strong>Refresh Token:</strong> Long-lived (30 days), HTTP-only cookie</li>
-                <li><strong>Token Rotation:</strong> New refresh token issued on each refresh</li>
-                <li><strong>Revocation:</strong> Redis-backed blacklist for immediate invalidation</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>JWT-based authentication</strong> with access and refresh tokens. Implements secure
+        token refresh mechanism with Redis-backed token revocation.
+      </div>
+      <div class="mermaid">
+        sequenceDiagram actor User participant Browser participant API as Next.js API participant DB
+        as PostgreSQL participant Redis rect rgb(230, 245, 255) Note over User,Redis: Login Flow
+        User->>Browser: Enter credentials Browser->>API: POST /auth/login API->>DB: Verify
+        email/password DB-->>API: User found, password valid API->>API: Generate JWT tokens
+        API->>Redis: Store refresh token API-->>Browser: Access token (15 min)<br />Refresh token
+        (HTTP-only cookie) Browser-->>User: Redirect to dashboard end rect rgb(255, 245, 230) Note
+        over User,Redis: API Request (Authenticated) User->>Browser: View trades Browser->>API: GET
+        /api/v1/trades<br />Authorization: Bearer {access_token} API->>API: Verify JWT signature
+        API->>API: Check expiration API-->>Browser: 200 OK {trades} end rect rgb(255, 230, 230) Note
+        over User,Redis: Token Refresh Flow Browser->>Browser: Access token expired Browser->>API:
+        POST /auth/refresh<br />Cookie: refresh_token API->>Redis: Validate refresh token
+        Redis-->>API: Token valid API->>API: Generate new access token API-->>Browser: New access
+        token Browser->>Browser: Retry original request end rect rgb(230, 255, 230) Note over
+        User,Redis: Logout Flow User->>Browser: Click logout Browser->>API: POST /auth/logout
+        API->>Redis: Revoke refresh token Redis-->>API: Token revoked API-->>Browser: 200 OK
+        Browser->>Browser: Clear local tokens Browser-->>User: Redirect to login end
+      </div>
+      <div class="legend">
+        <h4>Token Security:</h4>
+        <ul>
+          <li><strong>Access Token:</strong> Short-lived (15 min), stored in memory</li>
+          <li><strong>Refresh Token:</strong> Long-lived (30 days), HTTP-only cookie</li>
+          <li><strong>Token Rotation:</strong> New refresh token issued on each refresh</li>
+          <li><strong>Revocation:</strong> Redis-backed blacklist for immediate invalidation</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 4. MULTI-TENANCY ARCHITECTURE -->
     <h2>4. Multi-Tenancy Architecture (SaaS)</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Shared schema with Row-Level Security (RLS)</strong> ensuring complete data isolation between tenants while maintaining cost efficiency.
-        </div>
-        <div class="mermaid">
-graph TB
-    subgraph "Tenant A - Workspace"
-         UserA1["User: 👤 Owner"]
-        UserA2["User: 👤 Admin"]
-        UserA3["User: 👤 Member"]
-    end
-    
-    subgraph "Tenant B - Workspace"
-        UserB1["User: 👤 Owner"]
-        UserB2["User: 👤 Member"]
-    end
-    
-    subgraph "Tenant C - Workspace"
-        UserC1["User: 👤 Owner"]
-    end
-    
-    subgraph "Application Layer"
-        Middleware["🔐 Tenant Context Middleware<br/>Sets tenant_id from JWT"]
-    end
-    
-    subgraph "Database - Shared Schema"
-        RLS["🛡️ Row-Level Security<br/>Enforces tenant isolation"]
-        
-        subgraph "Tables"
-            Trades["trades<br/>tenant_id | user_id | symbol | pnl"]
-            Tags["tags<br/>tenant_id | name | color"]
-            Users["users<br/>tenant_id | email | role"]
-            Subs["subscriptions<br/>tenant_id | plan | status"]
-        end
-    end
-    
-    UserA1 --> Middleware
-    UserA2 --> Middleware
-    UserA3 --> Middleware
-    UserB1 --> Middleware
-    UserB2 --> Middleware
-    UserC1 --> Middleware
-    
-    Middleware --> RLS
-    
-    RLS --> Trades
-    RLS --> Tags
-    RLS --> Users
-    RLS --> Subs
-    
-    style UserA1 fill:#e3f2fd
-    style UserA2 fill:#e3f2fd
-    style UserA3 fill:#e3f2fd
-    style UserB1 fill:#c8e6c9
-    style UserB2 fill:#c8e6c9
-    style UserC1 fill:#fff9c4
-    style Middleware fill:#ffccbc
-    style RLS fill:#f8bbd0
-    style Trades fill:#f3e5f5
-    style Tags fill:#f3e5f5
-    style Users fill:#f3e5f5
-    style Subs fill:#f3e5f5
-        </div>
-        <div class="legend">
-            <h4>PostgreSQL RLS Policy Example:</h4>
-            <code>CREATE POLICY tenant_isolation ON trades<br/>
-            USING (tenant_id = current_setting('app.current_tenant_id')::uuid);</code>
-            <ul>
-                <li><strong>Middleware:</strong> Extracts tenant_id from JWT, sets session variable</li>
-                <li><strong>RLS:</strong> Automatically filters all queries by tenant_id</li>
-                <li><strong>Zero Trust:</strong> Even with SQL injection, cross-tenant access impossible</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Shared schema with Row-Level Security (RLS)</strong> ensuring complete data
+        isolation between tenants while maintaining cost efficiency.
+      </div>
+      <div class="mermaid">
+        graph TB subgraph "Tenant A - Workspace" UserA1["User: 👤 Owner"] UserA2["User: 👤 Admin"]
+        UserA3["User: 👤 Member"] end subgraph "Tenant B - Workspace" UserB1["User: 👤 Owner"]
+        UserB2["User: 👤 Member"] end subgraph "Tenant C - Workspace" UserC1["User: 👤 Owner"] end
+        subgraph "Application Layer" Middleware["🔐 Tenant Context Middleware<br />Sets tenant_id
+        from JWT"] end subgraph "Database - Shared Schema" RLS["🛡️ Row-Level Security<br />Enforces
+        tenant isolation"] subgraph "Tables" Trades["trades<br />tenant_id | user_id | symbol |
+        pnl"] Tags["tags<br />tenant_id | name | color"] Users["users<br />tenant_id | email |
+        role"] Subs["subscriptions<br />tenant_id | plan | status"] end end UserA1 --> Middleware
+        UserA2 --> Middleware UserA3 --> Middleware UserB1 --> Middleware UserB2 --> Middleware
+        UserC1 --> Middleware Middleware --> RLS RLS --> Trades RLS --> Tags RLS --> Users RLS -->
+        Subs style UserA1 fill:#e3f2fd style UserA2 fill:#e3f2fd style UserA3 fill:#e3f2fd style
+        UserB1 fill:#c8e6c9 style UserB2 fill:#c8e6c9 style UserC1 fill:#fff9c4 style Middleware
+        fill:#ffccbc style RLS fill:#f8bbd0 style Trades fill:#f3e5f5 style Tags fill:#f3e5f5 style
+        Users fill:#f3e5f5 style Subs fill:#f3e5f5
+      </div>
+      <div class="legend">
+        <h4>PostgreSQL RLS Policy Example:</h4>
+        <code
+          >CREATE POLICY tenant_isolation ON trades<br />
+          USING (tenant_id = current_setting('app.current_tenant_id')::uuid);</code
+        >
+        <ul>
+          <li><strong>Middleware:</strong> Extracts tenant_id from JWT, sets session variable</li>
+          <li><strong>RLS:</strong> Automatically filters all queries by tenant_id</li>
+          <li>
+            <strong>Zero Trust:</strong> Even with SQL injection, cross-tenant access impossible
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- 5. DATABASE SCHEMA -->
     <h2>5. Database Entity Relationship Diagram</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Complete database schema</strong> showing relationships, foreign keys, and indexes for optimal query performance.
-        </div>
-        <div class="mermaid">
-erDiagram
-    TENANTS ||--o{ USERS : has
-    TENANTS ||--o{ TRADES : owns
-    TENANTS ||--o{ TAGS : defines
-    TENANTS ||--|| SUBSCRIPTIONS : has
-    USERS ||--o{ TRADES : creates
-    TRADES }o--o{ TAGS : tagged_with
-    TRADES ||--o{ UPLOADS : has
-    TENANTS ||--o{ UPLOADS : stores
-    
-    TENANTS {
-        uuid id PK
-        string name
-        string slug UK
-        enum plan
-        enum status
-        timestamp created_at
-    }
-    
-    USERS {
-        uuid id PK
-        uuid tenant_id FK
-        string email UK
-        string password_hash
-        string name
-        enum role
-        timestamp created_at
-    }
-    
-    TRADES {
-        uuid id PK
-        uuid tenant_id FK
-        uuid user_id FK
-        string symbol
-        enum side
-        decimal entry_price
-        decimal exit_price
-        decimal quantity
-        decimal fees
-        decimal pnl
-        timestamp entry_timestamp
-        timestamp exit_timestamp
-        text notes
-        timestamp deleted_at
-        timestamp created_at
-    }
-    
-    TAGS {
-        uuid id PK
-        uuid tenant_id FK
-        string name UK
-        string color
-        timestamp created_at
-    }
-    
-    TRADE_TAGS {
-        uuid trade_id FK
-        uuid tag_id FK
-    }
-    
-    UPLOADS {
-        uuid id PK
-        uuid tenant_id FK
-        uuid trade_id FK
-        string storage_key
-        string mime_type
-        integer size_bytes
-        timestamp created_at
-    }
-    
-    SUBSCRIPTIONS {
-        uuid id PK
-        uuid tenant_id FK
-        string razorpay_subscription_id
-        enum plan
-        enum status
-        timestamp current_period_start
-        timestamp current_period_end
-        boolean cancel_at_period_end
-    }
-        </div>
-        <div class="legend">
-            <h4>Key Indexes:</h4>
-            <ul>
-                <li><code>idx_trades_tenant_exit</code> - Fast filtering by tenant and date</li>
-                <li><code>idx_trades_tenant_symbol</code> - Symbol-based queries</li>
-                <li><code>idx_trade_tags_composite</code> - Tag filtering performance</li>
-                <li><code>idx_users_email</code> - Authentication lookups</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Complete database schema</strong> showing relationships, foreign keys, and indexes
+        for optimal query performance.
+      </div>
+      <div class="mermaid">
+        erDiagram TENANTS ||--o{ USERS : has TENANTS ||--o{ TRADES : owns TENANTS ||--o{ TAGS :
+        defines TENANTS ||--|| SUBSCRIPTIONS : has USERS ||--o{ TRADES : creates TRADES }o--o{ TAGS
+        : tagged_with TRADES ||--o{ UPLOADS : has TENANTS ||--o{ UPLOADS : stores TENANTS { uuid id
+        PK string name string slug UK enum plan enum status timestamp created_at } USERS { uuid id
+        PK uuid tenant_id FK string email UK string password_hash string name enum role timestamp
+        created_at } TRADES { uuid id PK uuid tenant_id FK uuid user_id FK string symbol enum side
+        decimal entry_price decimal exit_price decimal quantity decimal fees decimal pnl timestamp
+        entry_timestamp timestamp exit_timestamp text notes timestamp deleted_at timestamp
+        created_at } TAGS { uuid id PK uuid tenant_id FK string name UK string color timestamp
+        created_at } TRADE_TAGS { uuid trade_id FK uuid tag_id FK } UPLOADS { uuid id PK uuid
+        tenant_id FK uuid trade_id FK string storage_key string mime_type integer size_bytes
+        timestamp created_at } SUBSCRIPTIONS { uuid id PK uuid tenant_id FK string
+        razorpay_subscription_id enum plan enum status timestamp current_period_start timestamp
+        current_period_end boolean cancel_at_period_end }
+      </div>
+      <div class="legend">
+        <h4>Key Indexes:</h4>
+        <ul>
+          <li><code>idx_trades_tenant_exit</code> - Fast filtering by tenant and date</li>
+          <li><code>idx_trades_tenant_symbol</code> - Symbol-based queries</li>
+          <li><code>idx_trade_tags_composite</code> - Tag filtering performance</li>
+          <li><code>idx_users_email</code> - Authentication lookups</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 6. ANALYTICS PIPELINE -->
     <h2>6. Analytics & Caching Architecture</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Three-tier caching strategy</strong> for analytics queries with automatic cache invalidation on data changes.
-        </div>
-        <div class="mermaid">
-graph LR
-    User[👤 User Request<br/>GET /analytics/summary]
-    
-    subgraph "Cache Layer 1 - Redis"
-        Check1{Cache Hit?}
-        Redis[(⚡ Redis<br/>TTL: 5 min)]
-    end
-    
-    subgraph "Cache Layer 2 - Materialized View"
-        Check2{View Fresh?}
-        MatView[(📊 Stats Cache Table<br/>Updated: Hourly)]
-    end
-    
-    subgraph "Database"
-        Query[🔍 Complex Query<br/>Joins, Aggregations]
-        Trades[(trades)]
-    end
-    
-    User --> Check1
-    Check1 -->|Yes| Return1[Return Cached]
-    Check1 -->|No| Check2
-    Check2 -->|Yes| Compute1[Compute from View]
-    Check2 -->|No| Query
-    Query --> Trades
-    Trades --> Result[Calculate Metrics]
-    Result --> Store1[Store in View]
-    Store1 --> Store2[Store in Redis]
-    Store2 --> Return2[Return Result]
-    Compute1 --> Store2
-    
-    subgraph "Cache Invalidation"
-        Event[Trade Created/Updated]
-        Event --> Invalidate[Clear Redis Keys]
-        Event --> Schedule[Schedule View Refresh]
-    end
-    
-    style Check1 fill:#fff3e0
-    style Check2 fill:#fff3e0
-    style Redis fill:#ffebee
-    style MatView fill:#e8f5e9
-    style Trades fill:#f3e5f5
-    style Event fill:#fce4ec
-        </div>
-        <div class="legend">
-            <h4>Cache Strategy:</h4>
-            <ul>
-                <li><strong>L1 (Redis):</strong> 5-minute TTL, instant reads, tenant-specific keys</li>
-                <li><strong>L2 (Materialized View):</strong> Hourly refresh, complex aggregations precomputed</li>
-                <li><strong>Invalidation:</strong> On trade create/update/delete, clear related cache keys</li>
-                <li><strong>Cache Key Pattern:</strong> <code>analytics:{tenant_id}:{metric}:{date_range}</code></li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Three-tier caching strategy</strong> for analytics queries with automatic cache
+        invalidation on data changes.
+      </div>
+      <div class="mermaid">
+        graph LR User[👤 User Request<br />GET /analytics/summary] subgraph "Cache Layer 1 - Redis"
+        Check1{Cache Hit?} Redis[(⚡ Redis<br />TTL: 5 min)] end subgraph "Cache Layer 2 -
+        Materialized View" Check2{View Fresh?} MatView[(📊 Stats Cache Table<br />Updated: Hourly)]
+        end subgraph "Database" Query[🔍 Complex Query<br />Joins, Aggregations] Trades[(trades)]
+        end User --> Check1 Check1 -->|Yes| Return1[Return Cached] Check1 -->|No| Check2 Check2
+        -->|Yes| Compute1[Compute from View] Check2 -->|No| Query Query --> Trades Trades -->
+        Result[Calculate Metrics] Result --> Store1[Store in View] Store1 --> Store2[Store in Redis]
+        Store2 --> Return2[Return Result] Compute1 --> Store2 subgraph "Cache Invalidation"
+        Event[Trade Created/Updated] Event --> Invalidate[Clear Redis Keys] Event -->
+        Schedule[Schedule View Refresh] end style Check1 fill:#fff3e0 style Check2 fill:#fff3e0
+        style Redis fill:#ffebee style MatView fill:#e8f5e9 style Trades fill:#f3e5f5 style Event
+        fill:#fce4ec
+      </div>
+      <div class="legend">
+        <h4>Cache Strategy:</h4>
+        <ul>
+          <li><strong>L1 (Redis):</strong> 5-minute TTL, instant reads, tenant-specific keys</li>
+          <li>
+            <strong>L2 (Materialized View):</strong> Hourly refresh, complex aggregations
+            precomputed
+          </li>
+          <li>
+            <strong>Invalidation:</strong> On trade create/update/delete, clear related cache keys
+          </li>
+          <li>
+            <strong>Cache Key Pattern:</strong>
+            <code>analytics:{tenant_id}:{metric}:{date_range}</code>
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- 7. FILE UPLOAD FLOW -->
     <h2>7. File Upload Architecture (Presigned URLs)</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Direct-to-S3 uploads</strong> using presigned URLs to reduce server load and improve upload performance.
-        </div>
-        <div class="mermaid">
-sequenceDiagram
-    actor User
-    participant Browser
-    participant API as Next.js API
-    participant S3 as AWS S3
-    participant DB as PostgreSQL
-    
-    rect rgb(230, 245, 255)
-        Note over User,DB: Step 1: Request Upload Permission
-        User->>Browser: Select file (chart.png)
-        Browser->>API: POST /api/v1/uploads/presign<br/>{filename, mimeType, size, tradeId}
-        API->>API: Validate file type/size
-        API->>API: Check storage limits
-        API->>S3: Generate presigned PUT URL<br/>(expires in 5 min)
-        S3-->>API: Presigned URL
-        API->>DB: Create upload record (status: pending)
-        API-->>Browser: {uploadId, presignedUrl, storageKey}
-    end
-    
-    rect rgb(255, 245, 230)
-        Note over User,DB: Step 2: Direct Upload to S3
-        Browser->>S3: PUT {presignedUrl}<br/>Binary file data
-        S3->>S3: Store file
-        S3-->>Browser: 200 OK
-    end
-    
-    rect rgb(230, 255, 230)
-        Note over User,DB: Step 3: Confirm Upload
-        Browser->>API: POST /api/v1/uploads/complete<br/>{uploadId, tradeId}
-        API->>S3: Verify file exists
-        S3-->>API: File confirmed
-        API->>DB: UPDATE upload status = 'completed'
-        API-->>Browser: {id, url, storageKey}
-        Browser-->>User: Show uploaded image
-    end
-    
-    opt Background Processing
-        API->>API: Queue virus scan job
-        API->>API: Queue thumbnail generation
-    end
-        </div>
-        <div class="legend">
-            <h4>Benefits of Presigned URLs:</h4>
-            <ul>
-                <li><strong>Reduced Server Load:</strong> Files bypass application server</li>
-                <li><strong>Better Performance:</strong> Direct S3 connection, no proxy overhead</li>
-                <li><strong>Scalability:</strong> S3 handles upload traffic, not your servers</li>
-                <li><strong>Security:</strong> Time-limited URLs (5 min), specific operation (PUT only)</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Direct-to-S3 uploads</strong> using presigned URLs to reduce server load and improve
+        upload performance.
+      </div>
+      <div class="mermaid">
+        sequenceDiagram actor User participant Browser participant API as Next.js API participant S3
+        as AWS S3 participant DB as PostgreSQL rect rgb(230, 245, 255) Note over User,DB: Step 1:
+        Request Upload Permission User->>Browser: Select file (chart.png) Browser->>API: POST
+        /api/v1/uploads/presign<br />{filename, mimeType, size, tradeId} API->>API: Validate file
+        type/size API->>API: Check storage limits API->>S3: Generate presigned PUT URL<br />(expires
+        in 5 min) S3-->>API: Presigned URL API->>DB: Create upload record (status: pending)
+        API-->>Browser: {uploadId, presignedUrl, storageKey} end rect rgb(255, 245, 230) Note over
+        User,DB: Step 2: Direct Upload to S3 Browser->>S3: PUT {presignedUrl}<br />Binary file data
+        S3->>S3: Store file S3-->>Browser: 200 OK end rect rgb(230, 255, 230) Note over User,DB:
+        Step 3: Confirm Upload Browser->>API: POST /api/v1/uploads/complete<br />{uploadId, tradeId}
+        API->>S3: Verify file exists S3-->>API: File confirmed API->>DB: UPDATE upload status =
+        'completed' API-->>Browser: {id, url, storageKey} Browser-->>User: Show uploaded image end
+        opt Background Processing API->>API: Queue virus scan job API->>API: Queue thumbnail
+        generation end
+      </div>
+      <div class="legend">
+        <h4>Benefits of Presigned URLs:</h4>
+        <ul>
+          <li><strong>Reduced Server Load:</strong> Files bypass application server</li>
+          <li><strong>Better Performance:</strong> Direct S3 connection, no proxy overhead</li>
+          <li><strong>Scalability:</strong> S3 handles upload traffic, not your servers</li>
+          <li>
+            <strong>Security:</strong> Time-limited URLs (5 min), specific operation (PUT only)
+          </li>
+        </ul>
+      </div>
     </div>
 
     <!-- 8. BILLING & SUBSCRIPTION FLOW -->
     <h2>8. Billing & Subscription Lifecycle</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Razorpay integration</strong> with webhook-based automation for subscription management and payment processing.
-        </div>
-        <div class="mermaid">
-stateDiagram-v2
-    [*] --> Free: User Registration
-    
-    Free --> CheckoutInitiated: User clicks "Upgrade"
-    CheckoutInitiated --> PaymentPending: Razorpay checkout opened
-    
-    PaymentPending --> Active: Payment Success
-    PaymentPending --> Free: Payment Failed/Cancelled
-    
-    Active --> Active: Monthly Renewal Success
-    Active --> PastDue: Payment Failed
-    
-    PastDue --> Active: Retry Payment Success
-    PastDue --> Suspended: Grace Period Expired (7 days)
-    
-    Suspended --> Active: Payment Recovered
-    Suspended --> Cancelled: User Cancels
-    
-    Active --> CancelScheduled: User Requests Cancel
-    CancelScheduled --> Active: User Resumes
-    CancelScheduled --> Free: Period End Reached
-    
-    Active --> Free: Downgrade Request
-    
-    Cancelled --> [*]: Data Deletion (30 days)
-    
-    note right of Free
-        Plan: Free
-        Trades: 50/month
-        Users: 1
-        Cost: ₹0
-    end note
-    
-    note right of Active
-        Plan: Pro/Enterprise
-        Trades: 500+/month
-        Users: 5+
-        Cost: ₹499+
-    end note
-    
-    note right of PastDue
-        Email: Payment Failed
-        Action: Retry 3 times
-        Grace: 7 days
-    end note
-        </div>
-        <div class="legend">
-            <h4>Razorpay Webhook Events:</h4>
-            <ul>
-                <li><code>subscription.activated</code> - Enable premium features</li>
-                <li><code>subscription.charged</code> - Record payment, extend billing period</li>
-                <li><code>subscription.cancelled</code> - Schedule downgrade to free plan</li>
-                <li><code>payment.failed</code> - Trigger retry logic and notifications</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Razorpay integration</strong> with webhook-based automation for subscription
+        management and payment processing.
+      </div>
+      <div class="mermaid">
+        stateDiagram-v2 [*] --> Free: User Registration Free --> CheckoutInitiated: User clicks
+        "Upgrade" CheckoutInitiated --> PaymentPending: Razorpay checkout opened PaymentPending -->
+        Active: Payment Success PaymentPending --> Free: Payment Failed/Cancelled Active --> Active:
+        Monthly Renewal Success Active --> PastDue: Payment Failed PastDue --> Active: Retry Payment
+        Success PastDue --> Suspended: Grace Period Expired (7 days) Suspended --> Active: Payment
+        Recovered Suspended --> Cancelled: User Cancels Active --> CancelScheduled: User Requests
+        Cancel CancelScheduled --> Active: User Resumes CancelScheduled --> Free: Period End Reached
+        Active --> Free: Downgrade Request Cancelled --> [*]: Data Deletion (30 days) note right of
+        Free Plan: Free Trades: 50/month Users: 1 Cost: ₹0 end note note right of Active Plan:
+        Pro/Enterprise Trades: 500+/month Users: 5+ Cost: ₹499+ end note note right of PastDue
+        Email: Payment Failed Action: Retry 3 times Grace: 7 days end note
+      </div>
+      <div class="legend">
+        <h4>Razorpay Webhook Events:</h4>
+        <ul>
+          <li><code>subscription.activated</code> - Enable premium features</li>
+          <li><code>subscription.charged</code> - Record payment, extend billing period</li>
+          <li><code>subscription.cancelled</code> - Schedule downgrade to free plan</li>
+          <li><code>payment.failed</code> - Trigger retry logic and notifications</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 9. DEPLOYMENT PIPELINE -->
     <h2>9. CI/CD Deployment Pipeline</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Automated deployment</strong> with comprehensive testing, security scanning, and staged rollout to production.
-        </div>
-        <div class="mermaid">
-graph TB
-    subgraph "Developer Workflow"
-        Dev[👨‍💻 Developer]
-        Branch[🌿 Create Feature Branch]
-        Commit[📝 Git Commit]
-        PR[📋 Create Pull Request]
-    end
-    
-    subgraph "GitHub Actions - CI Pipeline"
-        Lint[✅ ESLint + Prettier]
-        Type[🔍 TypeScript Check]
-        Unit[🧪 Unit Tests]
-        Int[🔗 Integration Tests]
-        Sec[🛡️ Security Scan<br/>Snyk + npm audit]
-        Build[📦 Build Application]
-    end
-    
-    subgraph "Preview Environment"
-        PreviewDeploy[🚀 Deploy to Vercel Preview]
-        PreviewURL[🔗 pr-123.vercel.app]
-        E2E[🤖 E2E Tests]
-    end
-    
-    subgraph "Staging Environment"
-        Merge[🔀 Merge to develop]
-        StagingDeploy[🚀 Deploy to Staging]
-        StagingURL[🔗 staging.tradingjournal.com]
-        Smoke[💨 Smoke Tests]
-    end
-    
-    subgraph "Production Environment"
-        Release[🏷️ Create Release Tag]
-        DBMigrate[🗄️ Run DB Migrations]
-        ProdDeploy[🚀 Deploy to Production]
-        ProdURL[🌐 tradingjournal.com]
-        Health[❤️ Health Check]
-        Monitor[📊 Monitor Metrics]
-    end
-    
-    Dev --> Branch
-    Branch --> Commit
-    Commit --> PR
-    
-    PR --> Lint
-    Lint --> Type
-    Type --> Unit
-    Unit --> Int
-    Int --> Sec
-    Sec --> Build
-    
-    Build --> PreviewDeploy
-    PreviewDeploy --> PreviewURL
-    PreviewURL --> E2E
-    
-    E2E -->|Pass| Merge
-    Merge --> StagingDeploy
-    StagingDeploy --> StagingURL
-    StagingURL --> Smoke
-    
-    Smoke -->|Pass| Release
-    Release --> DBMigrate
-    DBMigrate --> ProdDeploy
-    ProdDeploy --> ProdURL
-    ProdURL --> Health
-    Health -->|Pass| Monitor
-    
-    Health -->|Fail| Rollback[🔙 Automatic Rollback]
-    
-    style Lint fill:#e8f5e9
-    style Type fill:#e8f5e9
-    style Unit fill:#e8f5e9
-    style Int fill:#e8f5e9
-    style Sec fill:#fff3e0
-    style Build fill:#e3f2fd
-    style PreviewDeploy fill:#f3e5f5
-    style StagingDeploy fill:#fff9c4
-    style ProdDeploy fill:#ffebee
-    style Rollback fill:#ffcdd2
-        </div>
-        <div class="legend">
-            <h4>Deployment Gates:</h4>
-            <ul>
-                <li><strong>Preview:</strong> Automatic on every PR, isolated environment per PR</li>
-                <li><strong>Staging:</strong> Requires all CI checks to pass, 1 approval</li>
-                <li><strong>Production:</strong> Requires staging tests pass, 2 approvals, manual trigger</li>
-                <li><strong>Rollback:</strong> Automatic if health checks fail after deployment</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Automated deployment</strong> with comprehensive testing, security scanning, and
+        staged rollout to production.
+      </div>
+      <div class="mermaid">
+        graph TB subgraph "Developer Workflow" Dev[👨‍💻 Developer] Branch[🌿 Create Feature Branch]
+        Commit[📝 Git Commit] PR[📋 Create Pull Request] end subgraph "GitHub Actions - CI Pipeline"
+        Lint[✅ ESLint + Prettier] Type[🔍 TypeScript Check] Unit[🧪 Unit Tests] Int[🔗 Integration
+        Tests] Sec[🛡️ Security Scan<br />Snyk + npm audit] Build[📦 Build Application] end subgraph
+        "Preview Environment" PreviewDeploy[🚀 Deploy to Vercel Preview] PreviewURL[🔗
+        pr-123.vercel.app] E2E[🤖 E2E Tests] end subgraph "Staging Environment" Merge[🔀 Merge to
+        develop] StagingDeploy[🚀 Deploy to Staging] StagingURL[🔗 staging.tradingjournal.com]
+        Smoke[💨 Smoke Tests] end subgraph "Production Environment" Release[🏷️ Create Release Tag]
+        DBMigrate[🗄️ Run DB Migrations] ProdDeploy[🚀 Deploy to Production] ProdURL[🌐
+        tradingjournal.com] Health[❤️ Health Check] Monitor[📊 Monitor Metrics] end Dev --> Branch
+        Branch --> Commit Commit --> PR PR --> Lint Lint --> Type Type --> Unit Unit --> Int Int -->
+        Sec Sec --> Build Build --> PreviewDeploy PreviewDeploy --> PreviewURL PreviewURL --> E2E
+        E2E -->|Pass| Merge Merge --> StagingDeploy StagingDeploy --> StagingURL StagingURL -->
+        Smoke Smoke -->|Pass| Release Release --> DBMigrate DBMigrate --> ProdDeploy ProdDeploy -->
+        ProdURL ProdURL --> Health Health -->|Pass| Monitor Health -->|Fail| Rollback[🔙 Automatic
+        Rollback] style Lint fill:#e8f5e9 style Type fill:#e8f5e9 style Unit fill:#e8f5e9 style Int
+        fill:#e8f5e9 style Sec fill:#fff3e0 style Build fill:#e3f2fd style PreviewDeploy
+        fill:#f3e5f5 style StagingDeploy fill:#fff9c4 style ProdDeploy fill:#ffebee style Rollback
+        fill:#ffcdd2
+      </div>
+      <div class="legend">
+        <h4>Deployment Gates:</h4>
+        <ul>
+          <li><strong>Preview:</strong> Automatic on every PR, isolated environment per PR</li>
+          <li><strong>Staging:</strong> Requires all CI checks to pass, 1 approval</li>
+          <li>
+            <strong>Production:</strong> Requires staging tests pass, 2 approvals, manual trigger
+          </li>
+          <li><strong>Rollback:</strong> Automatic if health checks fail after deployment</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 10. MONITORING & OBSERVABILITY -->
     <h2>10. Monitoring & Observability Stack</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Comprehensive monitoring</strong> covering application performance, errors, infrastructure health, and business metrics.
-        </div>
-        <div class="mermaid">
-graph TB
-    subgraph "Application Layer"
-        App[Next.js Application]
-        API[API Routes]
-        Worker[Background Workers]
-    end
-    
-    subgraph "Instrumentation"
-        Logger[📝 Winston Logger<br/>Structured Logging]
-        Metrics[📊 Prometheus Client<br/>Custom Metrics]
-        Tracer[🔍 OpenTelemetry<br/>Distributed Tracing]
-        Error[🐛 Sentry SDK<br/>Error Capture]
-    end
-    
-    subgraph "Collection & Storage"
-        Grafana[📈 Grafana Cloud<br/>Metrics & Logs]
-        Sentry[🔴 Sentry<br/>Error Tracking]
-        Vercel[▲ Vercel Analytics<br/>Web Vitals]
-    end
-    
-    subgraph "Alerting & Notification"
-        Alert[🚨 Alert Manager]
-        Slack[💬 Slack Notifications]
-        Email[📧 Email Alerts]
-        PagerDuty[📟 PagerDuty<br/>Critical Issues]
-    end
-    
-    subgraph "Dashboards"
-        AppDash[📊 Application Dashboard<br/>Latency, Throughput, Errors]
-        BizDash[💼 Business Dashboard<br/>MRR, Churn, Signups]
-        InfraDash[🖥️ Infrastructure Dashboard<br/>DB, Redis, S3 Health]
-    end
-    
-    App --> Logger
-    API --> Metrics
-    Worker --> Tracer
-    App --> Error
-    
-    Logger --> Grafana
-    Metrics --> Grafana
-    Tracer --> Grafana
-    Error --> Sentry
-    App --> Vercel
-    
-    Grafana --> Alert
-    Sentry --> Alert
-    
-    Alert --> Slack
-    Alert --> Email
-    Alert --> PagerDuty
-    
-    Grafana --> AppDash
-    Grafana --> BizDash
-    Grafana --> InfraDash
-    
-    style App fill:#e3f2fd
-    style Logger fill:#e8f5e9
-    style Metrics fill:#e8f5e9
-    style Tracer fill:#e8f5e9
-    style Error fill:#ffebee
-    style Grafana fill:#f3e5f5
-    style Sentry fill:#ffcdd2
-    style Alert fill:#fff3e0
-    style Slack fill:#e1bee7
-    style Email fill:#bbdefb
-    style PagerDuty fill:#ffecb3
-    style AppDash fill:#fce4ec
-    style BizDash fill:#e1bee7
-    style InfraDash fill:#bbdefb
-        </div>
-        <div class="legend">
-            <h4>Key Metrics Monitored:</h4>
-            <ul>
-                <li><strong>Application:</strong> Response times, error rates, throughput, API latency</li>
-                <li><strong>Infrastructure:</strong> Database connections, Redis memory, S3 bandwidth</li>
-                <li><strong>Business:</strong> MRR growth, churn rate, user acquisition cost</li>
-                <li><strong>User Experience:</strong> Web vitals, page load times, conversion rates</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Comprehensive monitoring</strong> covering application performance, errors,
+        infrastructure health, and business metrics.
+      </div>
+      <div class="mermaid">
+        graph TB subgraph "Application Layer" App[Next.js Application] API[API Routes]
+        Worker[Background Workers] end subgraph "Instrumentation" Logger[📝 Winston Logger<br />Structured
+        Logging] Metrics[📊 Prometheus Client<br />Custom Metrics] Tracer[🔍 OpenTelemetry<br />Distributed
+        Tracing] Error[🐛 Sentry SDK<br />Error Capture] end subgraph "Collection & Storage"
+        Grafana[📈 Grafana Cloud<br />Metrics & Logs] Sentry[🔴 Sentry<br />Error Tracking] Vercel[▲
+        Vercel Analytics<br />Web Vitals] end subgraph "Alerting & Notification" Alert[🚨 Alert
+        Manager] Slack[💬 Slack Notifications] Email[📧 Email Alerts] PagerDuty[📟 PagerDuty<br />Critical
+        Issues] end subgraph "Dashboards" AppDash[📊 Application Dashboard<br />Latency, Throughput,
+        Errors] BizDash[💼 Business Dashboard<br />MRR, Churn, Signups] InfraDash[🖥️ Infrastructure
+        Dashboard<br />DB, Redis, S3 Health] end App --> Logger API --> Metrics Worker --> Tracer
+        App --> Error Logger --> Grafana Metrics --> Grafana Tracer --> Grafana Error --> Sentry App
+        --> Vercel Grafana --> Alert Sentry --> Alert Alert --> Slack Alert --> Email Alert -->
+        PagerDuty Grafana --> AppDash Grafana --> BizDash Grafana --> InfraDash style App
+        fill:#e3f2fd style Logger fill:#e8f5e9 style Metrics fill:#e8f5e9 style Tracer fill:#e8f5e9
+        style Error fill:#ffebee style Grafana fill:#f3e5f5 style Sentry fill:#ffcdd2 style Alert
+        fill:#fff3e0 style Slack fill:#e1bee7 style Email fill:#bbdefb style PagerDuty fill:#ffecb3
+        style AppDash fill:#fce4ec style BizDash fill:#e1bee7 style InfraDash fill:#bbdefb
+      </div>
+      <div class="legend">
+        <h4>Key Metrics Monitored:</h4>
+        <ul>
+          <li>
+            <strong>Application:</strong> Response times, error rates, throughput, API latency
+          </li>
+          <li><strong>Infrastructure:</strong> Database connections, Redis memory, S3 bandwidth</li>
+          <li><strong>Business:</strong> MRR growth, churn rate, user acquisition cost</li>
+          <li><strong>User Experience:</strong> Web vitals, page load times, conversion rates</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 11. SCALING STRATEGY -->
     <h2>11. Horizontal Scaling Strategy</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Multi-region deployment</strong> with load balancing, read replicas, and cache distribution for handling 100,000+ users.
-        </div>
-        <div class="mermaid">
-graph TB
-    subgraph "Load Balancer Layer"
-        Cloudflare[🌍 Cloudflare Load Balancer<br/>Geographic Routing]
-        Region1[🇺🇸 US-East-1]
-        Region2[🇪🇺 EU-West-1]
-        Region3[🇮🇳 AP-South-1]
-    end
-    
-    subgraph "Application Layer"
-        App1[⚡ Vercel - US Region]
-        App2[⚡ Vercel - EU Region]
-        App3[⚡ Vercel - India Region]
-    end
-    
-    subgraph "Data Layer - Primary"
-        PrimaryDB[(🗄️ Neon Primary<br/>Mumbai, India)]
-    end
-    
-    subgraph "Data Layer - Read Replicas"
-        Replica1[(🗄️ Read Replica 1<br/>Virginia, USA)]
-        Replica2[(🗄️ Read Replica 2<br/>Frankfurt, Germany)]
-    end
-    
-    subgraph "Cache Layer"
-        Redis1[(⚡ Redis Cluster - US)]
-        Redis2[(⚡ Redis Cluster - EU)]
-        Redis3[(⚡ Redis Cluster - India)]
-    end
-    
-    subgraph "Storage Layer"
-        S3[☁️ AWS S3 Global<br/>Cross-region Replication]
-        CFCDN[☁️ Cloudflare CDN<br/>Static Asset Caching]
-    end
-    
-    Users[👥 100,000+ Users] --> Cloudflare
-    Cloudflare --> Region1
-    Cloudflare --> Region2
-    Cloudflare --> Region3
-    
-    Region1 --> App1
-    Region2 --> App2
-    Region3 --> App3
-    
-    App1 --> Replica1
-    App2 --> Replica2
-    App3 --> PrimaryDB
-    
-    App1 --> Redis1
-    App2 --> Redis2
-    App3 --> Redis3
-    
-    PrimaryDB --> Replica1
-    PrimaryDB --> Replica2
-    
-    App1 --> S3
-    App2 --> S3
-    App3 --> S3
-    
-    S3 --> CFCDN
-    CFCDN --> Users
-    
-    style Users fill:#e3f2fd
-    style Cloudflare fill:#fff3e0
-    style App1 fill:#e8f5e9
-    style App2 fill:#e8f5e9
-    style App3 fill:#e8f5e9
-    style PrimaryDB fill:#f3e5f5
-    style Replica1 fill:#f3e5f5
-    style Replica2 fill:#f3e5f5
-    style Redis1 fill:#ffebee
-    style Redis2 fill:#ffebee
-    style Redis3 fill:#ffebee
-    style S3 fill:#e0f2f1
-    style CFCDN fill:#fff9c4
-        </div>
-        <div class="legend">
-            <h4>Scaling Benefits:</h4>
-            <ul>
-                <li><strong>Low Latency:</strong> Users routed to nearest application region</li>
-                <li><strong>Read Replicas:</strong> Analytics queries offloaded from primary DB</li>
-                <li><strong>Redis Clusters:</strong> Session data cached close to users</li>
-                <li><strong>CDN:</strong> Static assets served globally with edge caching</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Multi-region deployment</strong> with load balancing, read replicas, and cache
+        distribution for handling 100,000+ users.
+      </div>
+      <div class="mermaid">
+        graph TB subgraph "Load Balancer Layer" Cloudflare[🌍 Cloudflare Load Balancer<br />Geographic
+        Routing] Region1[🇺🇸 US-East-1] Region2[🇪🇺 EU-West-1] Region3[🇮🇳 AP-South-1] end subgraph
+        "Application Layer" App1[⚡ Vercel - US Region] App2[⚡ Vercel - EU Region] App3[⚡ Vercel -
+        India Region] end subgraph "Data Layer - Primary" PrimaryDB[(🗄️ Neon Primary<br />Mumbai,
+        India)] end subgraph "Data Layer - Read Replicas" Replica1[(🗄️ Read Replica 1<br />Virginia,
+        USA)] Replica2[(🗄️ Read Replica 2<br />Frankfurt, Germany)] end subgraph "Cache Layer"
+        Redis1[(⚡ Redis Cluster - US)] Redis2[(⚡ Redis Cluster - EU)] Redis3[(⚡ Redis Cluster -
+        India)] end subgraph "Storage Layer" S3[☁️ AWS S3 Global<br />Cross-region Replication]
+        CFCDN[☁️ Cloudflare CDN<br />Static Asset Caching] end Users[👥 100,000+ Users] -->
+        Cloudflare Cloudflare --> Region1 Cloudflare --> Region2 Cloudflare --> Region3 Region1 -->
+        App1 Region2 --> App2 Region3 --> App3 App1 --> Replica1 App2 --> Replica2 App3 -->
+        PrimaryDB App1 --> Redis1 App2 --> Redis2 App3 --> Redis3 PrimaryDB --> Replica1 PrimaryDB
+        --> Replica2 App1 --> S3 App2 --> S3 App3 --> S3 S3 --> CFCDN CFCDN --> Users style Users
+        fill:#e3f2fd style Cloudflare fill:#fff3e0 style App1 fill:#e8f5e9 style App2 fill:#e8f5e9
+        style App3 fill:#e8f5e9 style PrimaryDB fill:#f3e5f5 style Replica1 fill:#f3e5f5 style
+        Replica2 fill:#f3e5f5 style Redis1 fill:#ffebee style Redis2 fill:#ffebee style Redis3
+        fill:#ffebee style S3 fill:#e0f2f1 style CFCDN fill:#fff9c4
+      </div>
+      <div class="legend">
+        <h4>Scaling Benefits:</h4>
+        <ul>
+          <li><strong>Low Latency:</strong> Users routed to nearest application region</li>
+          <li><strong>Read Replicas:</strong> Analytics queries offloaded from primary DB</li>
+          <li><strong>Redis Clusters:</strong> Session data cached close to users</li>
+          <li><strong>CDN:</strong> Static assets served globally with edge caching</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 12. DISASTER RECOVERY PLAN -->
     <h2>12. Disaster Recovery & Backup Strategy</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Multi-region backups</strong> with automated failover and recovery procedures for business continuity.
-        </div>
-        <div class="mermaid">
-graph TB
-    subgraph "Primary Region - Mumbai (ap-south-1)"
-        PrimaryDB[(Primary PostgreSQL)]
-        Redis[(Redis Cluster)]
-        S3[(S3 Bucket)]
-        App[⚡ Vercel App]
-    end
-    
-    subgraph "Backup & Monitoring"
-        Daily[📅 Daily Backups<br/>Retention: 30 days]
-        Weekly[📅 Weekly Backups<br/>Retention: 90 days]
-        Monthly[📅 Monthly Backups<br/>Retention: 7 years]
-        Monitor[👁️ Health Monitoring<br/>PagerDuty Alerts]
-    end
-    
-    subgraph "Backup Storage"
-        S3Backup[☁️ S3 Backup Bucket<br/>Cross-region replication]
-        Glacier[🏔️ AWS Glacier<br/>Long-term archives]
-        External[💾 External Backup<br/>For legal compliance]
-    end
-    
-    subgraph "Failover Region - Frankfurt (eu-central-1)"
-        StandbyDB[(Standby PostgreSQL<br/>Synchronous Replication)]
-        StandbyApp[⚡ Vercel App]
-        Route53[🌐 Route53 DNS]
-    end
-    
-    subgraph "Recovery Procedures"
-        RTO[(RTO: 2 hours<br/>Recovery Time Objective)]
-        RPO[(RPO: 15 minutes<br/>Recovery Point Objective)]
-        Runbook[📘 Recovery Runbook<br/>Step-by-step procedures]
-    end
-    
-    PrimaryDB --> Daily
-    PrimaryDB --> Weekly
-    PrimaryDB --> Monthly
-    
-    Daily --> S3Backup
-    Weekly --> S3Backup
-    Monthly --> Glacier
-    
-    S3Backup --> External
-    
-    PrimaryDB -->|Synchronous Replication| StandbyDB
-    
-    Monitor --> PrimaryDB
-    Monitor --> Redis
-    Monitor --> App
-    
-    Monitor -->|Failure Detected| Route53
-    
-    Route53 -->|DNS Failover| StandbyApp
-    StandbyApp --> StandbyDB
-    
-    style PrimaryDB fill:#f3e5f5
-    style Redis fill:#ffebee
-    style S3 fill:#e0f2f1
-    style Daily fill:#e8f5e9
-    style Weekly fill:#e8f5e9
-    style Monthly fill:#e8f5e9
-    style StandbyDB fill:#f3e5f5
-    style StandbyApp fill:#e8f5e9
-    style RTO fill:#fff9c4
-    style RPO fill:#fff9c4
-        </div>
-        <div class="legend">
-            <h4>Recovery Procedures:</h4>
-            <ul>
-                <li><strong>Database Failure:</strong> Automatically switch to standby replica</li>
-                <li><strong>Region Failure:</strong> DNS failover to Frankfurt region</li>
-                <li><strong>Data Corruption:</strong> Restore from most recent backup</li>
-                <li><strong>Ransomware Attack:</strong> Restore from offline backups</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Multi-region backups</strong> with automated failover and recovery procedures for
+        business continuity.
+      </div>
+      <div class="mermaid">
+        graph TB subgraph "Primary Region - Mumbai (ap-south-1)" PrimaryDB[(Primary PostgreSQL)]
+        Redis[(Redis Cluster)] S3[(S3 Bucket)] App[⚡ Vercel App] end subgraph "Backup & Monitoring"
+        Daily[📅 Daily Backups<br />Retention: 30 days] Weekly[📅 Weekly Backups<br />Retention: 90
+        days] Monthly[📅 Monthly Backups<br />Retention: 7 years] Monitor[👁️ Health Monitoring<br />PagerDuty
+        Alerts] end subgraph "Backup Storage" S3Backup[☁️ S3 Backup Bucket<br />Cross-region
+        replication] Glacier[🏔️ AWS Glacier<br />Long-term archives] External[💾 External Backup<br />For
+        legal compliance] end subgraph "Failover Region - Frankfurt (eu-central-1)"
+        StandbyDB[(Standby PostgreSQL<br />Synchronous Replication)] StandbyApp[⚡ Vercel App]
+        Route53[🌐 Route53 DNS] end subgraph "Recovery Procedures" RTO[(RTO: 2 hours<br />Recovery
+        Time Objective)] RPO[(RPO: 15 minutes<br />Recovery Point Objective)] Runbook[📘 Recovery
+        Runbook<br />Step-by-step procedures] end PrimaryDB --> Daily PrimaryDB --> Weekly PrimaryDB
+        --> Monthly Daily --> S3Backup Weekly --> S3Backup Monthly --> Glacier S3Backup --> External
+        PrimaryDB -->|Synchronous Replication| StandbyDB Monitor --> PrimaryDB Monitor --> Redis
+        Monitor --> App Monitor -->|Failure Detected| Route53 Route53 -->|DNS Failover| StandbyApp
+        StandbyApp --> StandbyDB style PrimaryDB fill:#f3e5f5 style Redis fill:#ffebee style S3
+        fill:#e0f2f1 style Daily fill:#e8f5e9 style Weekly fill:#e8f5e9 style Monthly fill:#e8f5e9
+        style StandbyDB fill:#f3e5f5 style StandbyApp fill:#e8f5e9 style RTO fill:#fff9c4 style RPO
+        fill:#fff9c4
+      </div>
+      <div class="legend">
+        <h4>Recovery Procedures:</h4>
+        <ul>
+          <li><strong>Database Failure:</strong> Automatically switch to standby replica</li>
+          <li><strong>Region Failure:</strong> DNS failover to Frankfurt region</li>
+          <li><strong>Data Corruption:</strong> Restore from most recent backup</li>
+          <li><strong>Ransomware Attack:</strong> Restore from offline backups</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 13. SECURITY ARCHITECTURE -->
     <h2>13. Security Architecture & Defense Layers</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Defense-in-depth approach</strong> with multiple security layers protecting data at every level.
-        </div>
-        <div class="mermaid">
-graph TB
-    subgraph "Layer 1: Network Security"
-        Cloudflare[☁️ Cloudflare WAF<br/>DDoS Protection, Bot Management]
-        Vercel[▲ Vercel Edge Security<br/>Auto SSL, DDoS Mitigation]
-        VPC[🔒 VPC Isolation<br/>Private Database Access]
-    end
-    
-    subgraph "Layer 2: Application Security"
-        Auth[🔐 JWT Authentication<br/>Short-lived tokens]
-        RateLimit[⏱️ Rate Limiting<br/>Per-user & per-endpoint]
-        InputValidation[✅ Input Validation<br/>Zod schemas, SQL injection prevention]
-        CSRF[🛡️ CSRF Protection<br/>Double-submit cookies]
-    end
-    
-    subgraph "Layer 3: Data Security"
-        EncryptionT[🔑 Encryption in Transit<br/>TLS 1.3, HSTS]
-        EncryptionR[🔐 Encryption at Rest<br/>AES-256, KMS managed keys]
-        Masking[🎭 Data Masking<br/>PII protection in logs]
-        Backups[💾 Encrypted Backups<br/>Air-gapped storage]
-    end
-    
-    subgraph "Layer 4: Access Control"
-        RLS[🛡️ Row-Level Security<br/>Tenant data isolation]
-        RBAC[👥 Role-Based Access Control<br/>Owner, Admin, Member]
-        Audit[📝 Audit Logging<br/>All data access logged]
-        SSO[🔗 SSO Integration<br/>Enterprise customers]
-    end
-    
-    subgraph "Layer 5: Monitoring & Response"
-        SIEM[📊 Security Monitoring<br/>Real-time threat detection]
-        IDS[🚨 Intrusion Detection<br/>Anomaly detection]
-        Scanning[🔍 Vulnerability Scanning<br/>Weekly security scans]
-        IRP[📘 Incident Response Plan<br/>Documented procedures]
-    end
-    
-    Users[👥 Users] --> Cloudflare
-    Cloudflare --> Vercel
-    Vercel --> Auth
-    Auth --> RateLimit
-    RateLimit --> InputValidation
-    InputValidation --> EncryptionT
-    EncryptionT --> RLS
-    RLS --> RBAC
-    RBAC --> EncryptionR
-    EncryptionR --> Masking
-    Masking --> Backups
-    Backups --> SIEM
-    SIEM --> IDS
-    IDS --> Scanning
-    Scanning --> IRP
-    
-    style Users fill:#e3f2fd
-    style Cloudflare fill:#fff3e0
-    style Auth fill:#e8f5e9
-    style RateLimit fill:#e8f5e9
-    style InputValidation fill:#e8f5e9
-    style RLS fill:#f3e5f5
-    style RBAC fill:#f3e5f5
-    style EncryptionT fill:#e0f2f1
-    style EncryptionR fill:#e0f2f1
-    style SIEM fill:#ffebee
-    style IDS fill:#ffebee
-        </div>
-        <div class="legend">
-            <h4>Security Controls:</h4>
-            <ul>
-                <li><strong>Network:</strong> WAF, DDoS protection, VPC isolation</li>
-                <li><strong>Application:</strong> JWT auth, rate limiting, input validation</li>
-                <li><strong>Data:</strong> Encryption at rest and in transit, PII protection</li>
-                <li><strong>Access:</strong> RLS, RBAC, audit logging, SSO</li>
-                <li><strong>Monitoring:</strong> Real-time threat detection, vulnerability scanning</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Defense-in-depth approach</strong> with multiple security layers protecting data at
+        every level.
+      </div>
+      <div class="mermaid">
+        graph TB subgraph "Layer 1: Network Security" Cloudflare[☁️ Cloudflare WAF<br />DDoS
+        Protection, Bot Management] Vercel[▲ Vercel Edge Security<br />Auto SSL, DDoS Mitigation]
+        VPC[🔒 VPC Isolation<br />Private Database Access] end subgraph "Layer 2: Application
+        Security" Auth[🔐 JWT Authentication<br />Short-lived tokens] RateLimit[⏱️ Rate Limiting<br />Per-user
+        & per-endpoint] InputValidation[✅ Input Validation<br />Zod schemas, SQL injection
+        prevention] CSRF[🛡️ CSRF Protection<br />Double-submit cookies] end subgraph "Layer 3: Data
+        Security" EncryptionT[🔑 Encryption in Transit<br />TLS 1.3, HSTS] EncryptionR[🔐 Encryption
+        at Rest<br />AES-256, KMS managed keys] Masking[🎭 Data Masking<br />PII protection in logs]
+        Backups[💾 Encrypted Backups<br />Air-gapped storage] end subgraph "Layer 4: Access Control"
+        RLS[🛡️ Row-Level Security<br />Tenant data isolation] RBAC[👥 Role-Based Access Control<br />Owner,
+        Admin, Member] Audit[📝 Audit Logging<br />All data access logged] SSO[🔗 SSO Integration<br />Enterprise
+        customers] end subgraph "Layer 5: Monitoring & Response" SIEM[📊 Security Monitoring<br />Real-time
+        threat detection] IDS[🚨 Intrusion Detection<br />Anomaly detection] Scanning[🔍
+        Vulnerability Scanning<br />Weekly security scans] IRP[📘 Incident Response Plan<br />Documented
+        procedures] end Users[👥 Users] --> Cloudflare Cloudflare --> Vercel Vercel --> Auth Auth
+        --> RateLimit RateLimit --> InputValidation InputValidation --> EncryptionT EncryptionT -->
+        RLS RLS --> RBAC RBAC --> EncryptionR EncryptionR --> Masking Masking --> Backups Backups
+        --> SIEM SIEM --> IDS IDS --> Scanning Scanning --> IRP style Users fill:#e3f2fd style
+        Cloudflare fill:#fff3e0 style Auth fill:#e8f5e9 style RateLimit fill:#e8f5e9 style
+        InputValidation fill:#e8f5e9 style RLS fill:#f3e5f5 style RBAC fill:#f3e5f5 style
+        EncryptionT fill:#e0f2f1 style EncryptionR fill:#e0f2f1 style SIEM fill:#ffebee style IDS
+        fill:#ffebee
+      </div>
+      <div class="legend">
+        <h4>Security Controls:</h4>
+        <ul>
+          <li><strong>Network:</strong> WAF, DDoS protection, VPC isolation</li>
+          <li><strong>Application:</strong> JWT auth, rate limiting, input validation</li>
+          <li><strong>Data:</strong> Encryption at rest and in transit, PII protection</li>
+          <li><strong>Access:</strong> RLS, RBAC, audit logging, SSO</li>
+          <li><strong>Monitoring:</strong> Real-time threat detection, vulnerability scanning</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 14. COST OPTIMIZATION -->
     <h2>14. Cost Optimization Architecture</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Serverless-first approach</strong> with auto-scaling and intelligent resource allocation to minimize costs while maintaining performance.
-        </div>
-        <div class="mermaid">
-graph LR
-    subgraph "Compute Optimization"
-        Serverless[⚡ Serverless Functions<br/>Pay-per-execution]
-        AutoScale[📈 Auto-scaling<br/>Based on request volume]
-        ColdStart[⚡ Cold Start Optimization<br/>Keep-alive strategies]
-        Queue[📬 Queue Processing<br/>Defer non-critical work]
-    end
-    
-    subgraph "Database Optimization"
-        ConnectionPool[🔗 Connection Pooling<br/>Reuse database connections]
-        ReadReplicas[📖 Read Replicas<br/>Offload analytics queries]
-        Indexing[🔍 Smart Indexing<br/>Optimize query performance]
-        Partitioning[📊 Table Partitioning<br/>By tenant and date]
-    end
-    
-    subgraph "Cache Optimization"
-        Redis[⚡ Redis Cache<br/>Reduce database load]
-        CDN[🌍 CDN Caching<br/>Static assets at edge]
-        BrowserCache[💾 Browser Caching<br/>Client-side caching]
-    end
-    
-    subgraph "Storage Optimization"
-        S3Tiering[📦 S3 Lifecycle Policies<br/>Move old files to Glacier]
-        Compression[🗜️ Compression<br/>Gzip, Brotli for assets]
-        Deduplication[🔍 File Deduplication<br/>Same file across tenants]
-        Cleanup[🧹 Automated Cleanup<br/>Remove old unused data]
-    end
-    
-    subgraph "Monitoring & Alerts"
-        CostMonitor[💰 Cost Monitoring<br/>Real-time spend tracking]
-        Alerting[🚨 Budget Alerts<br/>Notify when approaching limits]
-        Optimization[🔍 Optimization Suggestions<br/>AI-driven recommendations]
-        Reports[📊 Monthly Reports<br/>Cost breakdown by service]
-    end
-    
-    Serverless --> AutoScale
-    AutoScale --> ColdStart
-    ColdStart --> Queue
-    
-    ConnectionPool --> ReadReplicas
-    ReadReplicas --> Indexing
-    Indexing --> Partitioning
-    
-    Redis --> CDN
-    CDN --> BrowserCache
-    
-    S3Tiering --> Compression
-    Compression --> Deduplication
-    Deduplication --> Cleanup
-    
-    CostMonitor --> Alerting
-    Alerting --> Optimization
-    Optimization --> Reports
-    
-    style Serverless fill:#e8f5e9
-    style AutoScale fill:#e8f5e9
-    style ConnectionPool fill:#f3e5f5
-    style ReadReplicas fill:#f3e5f5
-    style Redis fill:#ffebee
-    style CDN fill:#ffebee
-    style S3Tiering fill:#e0f2f1
-    style CostMonitor fill:#fff9c4
-        </div>
-        <div class="legend">
-            <h4>Cost Saving Strategies:</h4>
-            <ul>
-                <li><strong>Serverless:</strong> Pay only for actual compute used</li>
-                <li><strong>Database:</strong> Read replicas for analytics, connection pooling</li>
-                <li><strong>Caching:</strong> Multi-layer caching to reduce compute needs</li>
-                <li><strong>Storage:</strong> Lifecycle policies, compression, deduplication</li>
-                <li><strong>Monitoring:</strong> Real-time cost tracking with alerts</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Serverless-first approach</strong> with auto-scaling and intelligent resource
+        allocation to minimize costs while maintaining performance.
+      </div>
+      <div class="mermaid">
+        graph LR subgraph "Compute Optimization" Serverless[⚡ Serverless Functions<br />Pay-per-execution]
+        AutoScale[📈 Auto-scaling<br />Based on request volume] ColdStart[⚡ Cold Start
+        Optimization<br />Keep-alive strategies] Queue[📬 Queue Processing<br />Defer non-critical
+        work] end subgraph "Database Optimization" ConnectionPool[🔗 Connection Pooling<br />Reuse
+        database connections] ReadReplicas[📖 Read Replicas<br />Offload analytics queries]
+        Indexing[🔍 Smart Indexing<br />Optimize query performance] Partitioning[📊 Table
+        Partitioning<br />By tenant and date] end subgraph "Cache Optimization" Redis[⚡ Redis
+        Cache<br />Reduce database load] CDN[🌍 CDN Caching<br />Static assets at edge]
+        BrowserCache[💾 Browser Caching<br />Client-side caching] end subgraph "Storage
+        Optimization" S3Tiering[📦 S3 Lifecycle Policies<br />Move old files to Glacier]
+        Compression[🗜️ Compression<br />Gzip, Brotli for assets] Deduplication[🔍 File
+        Deduplication<br />Same file across tenants] Cleanup[🧹 Automated Cleanup<br />Remove old
+        unused data] end subgraph "Monitoring & Alerts" CostMonitor[💰 Cost Monitoring<br />Real-time
+        spend tracking] Alerting[🚨 Budget Alerts<br />Notify when approaching limits]
+        Optimization[🔍 Optimization Suggestions<br />AI-driven recommendations] Reports[📊 Monthly
+        Reports<br />Cost breakdown by service] end Serverless --> AutoScale AutoScale --> ColdStart
+        ColdStart --> Queue ConnectionPool --> ReadReplicas ReadReplicas --> Indexing Indexing -->
+        Partitioning Redis --> CDN CDN --> BrowserCache S3Tiering --> Compression Compression -->
+        Deduplication Deduplication --> Cleanup CostMonitor --> Alerting Alerting --> Optimization
+        Optimization --> Reports style Serverless fill:#e8f5e9 style AutoScale fill:#e8f5e9 style
+        ConnectionPool fill:#f3e5f5 style ReadReplicas fill:#f3e5f5 style Redis fill:#ffebee style
+        CDN fill:#ffebee style S3Tiering fill:#e0f2f1 style CostMonitor fill:#fff9c4
+      </div>
+      <div class="legend">
+        <h4>Cost Saving Strategies:</h4>
+        <ul>
+          <li><strong>Serverless:</strong> Pay only for actual compute used</li>
+          <li><strong>Database:</strong> Read replicas for analytics, connection pooling</li>
+          <li><strong>Caching:</strong> Multi-layer caching to reduce compute needs</li>
+          <li><strong>Storage:</strong> Lifecycle policies, compression, deduplication</li>
+          <li><strong>Monitoring:</strong> Real-time cost tracking with alerts</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 15. API GATEWAY PATTERN -->
     <h2>15. API Gateway & Microservices Pattern</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>API Gateway pattern</strong> for request routing, rate limiting, and API versioning as the application scales.
-        </div>
-        <div class="mermaid">
-graph TB
-    subgraph "API Gateway Layer"
-        Gateway[🌐 API Gateway<br/>Request Routing, Auth]
-        AuthMiddleware[🔐 Authentication<br/>JWT Verification]
-        RateLimit[⏱️ Rate Limiting<br/>Per IP & User]
-        Logging[📝 Request Logging<br/>Structured Logs]
-        Versioning[🔢 API Versioning<br/>v1, v2 support]
-    end
-    
-    subgraph "Core Services"
-        TradeService[💼 Trade Service<br/>CRUD operations]
-        AnalyticsService[📊 Analytics Service<br/>Calculations, Reports]
-        UserService[👥 User Service<br/>Authentication, Profiles]
-        BillingService[💰 Billing Service<br/>Subscriptions, Invoices]
-    end
-    
-    subgraph "Background Services"
-        ReportService[📈 Report Service<br/>PDF generation]
-        ImportService[📥 Import Service<br/>CSV processing]
-        NotificationService[📧 Notification Service<br/>Emails, Alerts]
-        CacheService[⚡ Cache Service<br/>Cache management]
-    end
-    
-    subgraph "Shared Infrastructure"
-        Database[(🗄️ PostgreSQL<br/>Shared Database)]
-        RedisCache[(⚡ Redis<br/>Shared Cache)]
-        MessageQueue[📬 Message Queue<br/>Service communication]
-    end
-    
-    Client[🌐 Web/Mobile Client] --> Gateway
-    
-    Gateway --> AuthMiddleware
-    AuthMiddleware --> RateLimit
-    RateLimit --> Logging
-    Logging --> Versioning
-    
-    Versioning --> TradeService
-    Versioning --> AnalyticsService
-    Versioning --> UserService
-    Versioning --> BillingService
-    
-    TradeService --> Database
-    AnalyticsService --> Database
-    UserService --> Database
-    BillingService --> Database
-    
-    TradeService --> RedisCache
-    AnalyticsService --> RedisCache
-    
-    TradeService --> MessageQueue
-    MessageQueue --> ReportService
-    MessageQueue --> ImportService
-    MessageQueue --> NotificationService
-    
-    ReportService --> CacheService
-    ImportService --> CacheService
-    
-    style Gateway fill:#fff3e0
-    style AuthMiddleware fill:#e8f5e9
-    style TradeService fill:#f3e5f5
-    style AnalyticsService fill:#f3e5f5
-    style ReportService fill:#e0f2f1
-    style ImportService fill:#e0f2f1
-    style Database fill:#f3e5f5
-    style RedisCache fill:#ffebee
-        </div>
-        <div class="legend">
-            <h4>Benefits of API Gateway:</h4>
-            <ul>
-                <li><strong>Centralized Auth:</strong> Single point for authentication</li>
-                <li><strong>Rate Limiting:</strong> Consistent across all services</li>
-                <li><strong>Versioning:</strong> Easy API version management</li>
-                <li><strong>Monitoring:</strong> Unified request logging</li>
-                <li><strong>Routing:</strong> Intelligent request distribution</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>API Gateway pattern</strong> for request routing, rate limiting, and API versioning
+        as the application scales.
+      </div>
+      <div class="mermaid">
+        graph TB subgraph "API Gateway Layer" Gateway[🌐 API Gateway<br />Request Routing, Auth]
+        AuthMiddleware[🔐 Authentication<br />JWT Verification] RateLimit[⏱️ Rate Limiting<br />Per
+        IP & User] Logging[📝 Request Logging<br />Structured Logs] Versioning[🔢 API Versioning<br />v1,
+        v2 support] end subgraph "Core Services" TradeService[💼 Trade Service<br />CRUD operations]
+        AnalyticsService[📊 Analytics Service<br />Calculations, Reports] UserService[👥 User
+        Service<br />Authentication, Profiles] BillingService[💰 Billing Service<br />Subscriptions,
+        Invoices] end subgraph "Background Services" ReportService[📈 Report Service<br />PDF
+        generation] ImportService[📥 Import Service<br />CSV processing] NotificationService[📧
+        Notification Service<br />Emails, Alerts] CacheService[⚡ Cache Service<br />Cache
+        management] end subgraph "Shared Infrastructure" Database[(🗄️ PostgreSQL<br />Shared
+        Database)] RedisCache[(⚡ Redis<br />Shared Cache)] MessageQueue[📬 Message Queue<br />Service
+        communication] end Client[🌐 Web/Mobile Client] --> Gateway Gateway --> AuthMiddleware
+        AuthMiddleware --> RateLimit RateLimit --> Logging Logging --> Versioning Versioning -->
+        TradeService Versioning --> AnalyticsService Versioning --> UserService Versioning -->
+        BillingService TradeService --> Database AnalyticsService --> Database UserService -->
+        Database BillingService --> Database TradeService --> RedisCache AnalyticsService -->
+        RedisCache TradeService --> MessageQueue MessageQueue --> ReportService MessageQueue -->
+        ImportService MessageQueue --> NotificationService ReportService --> CacheService
+        ImportService --> CacheService style Gateway fill:#fff3e0 style AuthMiddleware fill:#e8f5e9
+        style TradeService fill:#f3e5f5 style AnalyticsService fill:#f3e5f5 style ReportService
+        fill:#e0f2f1 style ImportService fill:#e0f2f1 style Database fill:#f3e5f5 style RedisCache
+        fill:#ffebee
+      </div>
+      <div class="legend">
+        <h4>Benefits of API Gateway:</h4>
+        <ul>
+          <li><strong>Centralized Auth:</strong> Single point for authentication</li>
+          <li><strong>Rate Limiting:</strong> Consistent across all services</li>
+          <li><strong>Versioning:</strong> Easy API version management</li>
+          <li><strong>Monitoring:</strong> Unified request logging</li>
+          <li><strong>Routing:</strong> Intelligent request distribution</li>
+        </ul>
+      </div>
     </div>
 
     <!-- 16. PERFORMANCE OPTIMIZATION -->
     <h2>16. Performance Optimization Strategies</h2>
     <div class="diagram-container">
-        <div class="description">
-            <strong>Multi-layer optimization</strong> focusing on both frontend and backend performance for optimal user experience.
-        </div>
-        <div class="mermaid">
-graph TD
-    subgraph "Frontend Optimization"
-        CodeSplit[📦 Code Splitting<br/>Route-based chunking]
-        LazyLoad[⏳ Lazy Loading<br/>Images, components]
-        Prefetch[⚡ Prefetching<br/>Anticipate user actions]
-        WebVitals[📊 Web Vitals<br/>Monitor Core Web Vitals]
-    end
-    
-    subgraph "Backend Optimization"
-        Connection[🔗 Connection Pooling<br/>Database connections]
-        Query[🔍 Query Optimization<br/>Indexes, EXPLAIN ANALYZE]
-        Cache[⚡ Multi-level Caching<br/>Redis, CDN, Browser]
-        Async[🔄 Async Processing<br/>Background jobs]
-    end
-    
-    subgraph "Network Optimization"
-        HTTP2[🔗 HTTP/2 + HTTP/3<br/>Multiplexing, faster]
-        Brotli[🗜️ Brotli Compression<br/>Better than Gzip]
-        CDNEdge[🌍 CDN Edge Caching<br/>Global distribution]
-        KeepAlive[🔁 Keep-Alive<br/>Persistent connections]
-    end
-    
-    subgraph "Database Optimization"
-        Partition[📊 Table Partitioning<br/>By date, tenant]
-        Materialized[📈 Materialized Views<br/>Pre-computed aggregates]
-        ReadReplicas[📖 Read Replicas<br/>Separate read/write]
-        ConnectionPooling[🔗 Connection Pooling<br/>Reduce connection overhead]
-    end
-    
-    subgraph "Monitoring & Tuning"
-        APM[📊 Application Performance Monitoring]
-        Profiling[🔍 Continuous Profiling<br/>Identify bottlenecks]
-        Alerting[🚨 Performance Alerts<br/>Threshold breaches]
-        A_B[🧪 A/B Testing<br/>Performance improvements]
-    end
-    
-    CodeSplit --> LazyLoad
-    LazyLoad --> Prefetch
-    Prefetch --> WebVitals
-    
-    Connection --> Query
-    Query --> Cache
-    Cache --> Async
-    
-    HTTP2 --> Brotli
-    Brotli --> CDNEdge
-    CDNEdge --> KeepAlive
-    
-    Partition --> Materialized
-    Materialized --> ReadReplicas
-    ReadReplicas --> ConnectionPooling
-    
-    APM --> Profiling
-    Profiling --> Alerting
-    Alerting --> A_B
-    
-    style CodeSplit fill:#e8f5e9
-    style Connection fill:#f3e5f5
-    style HTTP2 fill:#e0f2f1
-    style Partition fill:#fff9c4
-    style APM fill:#ffebee
-        </div>
-        <div class="legend">
-            <h4>Performance Targets:</h4>
-            <ul>
-                <li><strong>First Contentful Paint:</strong> &lt; 1.5 seconds</li>
-                <li><strong>Largest Contentful Paint:</strong> &lt; 2.5 seconds</li>
-                <li><strong>API Response Time:</strong> &lt; 100ms p95</li>
-                <li><strong>Time to Interactive:</strong> &lt; 3.5 seconds</li>
-                <li><strong>Cumulative Layout Shift:</strong> &lt; 0.1</li>
-            </ul>
-        </div>
+      <div class="description">
+        <strong>Multi-layer optimization</strong> focusing on both frontend and backend performance
+        for optimal user experience.
+      </div>
+      <div class="mermaid">
+        graph TD subgraph "Frontend Optimization" CodeSplit[📦 Code Splitting<br />Route-based
+        chunking] LazyLoad[⏳ Lazy Loading<br />Images, components] Prefetch[⚡ Prefetching<br />Anticipate
+        user actions] WebVitals[📊 Web Vitals<br />Monitor Core Web Vitals] end subgraph "Backend
+        Optimization" Connection[🔗 Connection Pooling<br />Database connections] Query[🔍 Query
+        Optimization<br />Indexes, EXPLAIN ANALYZE] Cache[⚡ Multi-level Caching<br />Redis, CDN,
+        Browser] Async[🔄 Async Processing<br />Background jobs] end subgraph "Network Optimization"
+        HTTP2[🔗 HTTP/2 + HTTP/3<br />Multiplexing, faster] Brotli[🗜️ Brotli Compression<br />Better
+        than Gzip] CDNEdge[🌍 CDN Edge Caching<br />Global distribution] KeepAlive[🔁 Keep-Alive<br />Persistent
+        connections] end subgraph "Database Optimization" Partition[📊 Table Partitioning<br />By
+        date, tenant] Materialized[📈 Materialized Views<br />Pre-computed aggregates]
+        ReadReplicas[📖 Read Replicas<br />Separate read/write] ConnectionPooling[🔗 Connection
+        Pooling<br />Reduce connection overhead] end subgraph "Monitoring & Tuning" APM[📊
+        Application Performance Monitoring] Profiling[🔍 Continuous Profiling<br />Identify
+        bottlenecks] Alerting[🚨 Performance Alerts<br />Threshold breaches] A_B[🧪 A/B Testing<br />Performance
+        improvements] end CodeSplit --> LazyLoad LazyLoad --> Prefetch Prefetch --> WebVitals
+        Connection --> Query Query --> Cache Cache --> Async HTTP2 --> Brotli Brotli --> CDNEdge
+        CDNEdge --> KeepAlive Partition --> Materialized Materialized --> ReadReplicas ReadReplicas
+        --> ConnectionPooling APM --> Profiling Profiling --> Alerting Alerting --> A_B style
+        CodeSplit fill:#e8f5e9 style Connection fill:#f3e5f5 style HTTP2 fill:#e0f2f1 style
+        Partition fill:#fff9c4 style APM fill:#ffebee
+      </div>
+      <div class="legend">
+        <h4>Performance Targets:</h4>
+        <ul>
+          <li><strong>First Contentful Paint:</strong> &lt; 1.5 seconds</li>
+          <li><strong>Largest Contentful Paint:</strong> &lt; 2.5 seconds</li>
+          <li><strong>API Response Time:</strong> &lt; 100ms p95</li>
+          <li><strong>Time to Interactive:</strong> &lt; 3.5 seconds</li>
+          <li><strong>Cumulative Layout Shift:</strong> &lt; 0.1</li>
+        </ul>
+      </div>
     </div>
 
     <script>
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'default',
-            securityLevel: 'loose',
-            flowchart: {
-                useMaxWidth: true,
-                htmlLabels: true
-            },
-            sequence: {
-                useMaxWidth: true,
-                showSequenceNumbers: false
-            },
-            er: {
-                useMaxWidth: true
-            }
-        });
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+        },
+        sequence: {
+          useMaxWidth: true,
+          showSequenceNumbers: false,
+        },
+        er: {
+          useMaxWidth: true,
+        },
+      });
     </script>
-
-
-</body>
+  </body>
 </html>
-
-

@@ -120,8 +120,8 @@ Creates a new trade entry.
 {
   "symbol": "AAPL",
   "side": "BUY",
-  "entryPrice": 175.50,
-  "exitPrice": 182.30,
+  "entryPrice": 175.5,
+  "exitPrice": 182.3,
   "quantity": 10,
   "entryTimestamp": "2025-12-10T10:00:00Z",
   "exitTimestamp": "2025-12-10T15:30:00Z",
@@ -227,7 +227,7 @@ Returns minimal dashboard metrics for MVP.
 {
   "success": true,
   "data": {
-    "netPnl": 12450.50,
+    "netPnl": 12450.5,
     "winRate": 62.3,
     "totalTrades": 45,
     "bestTrade": 850.0,
@@ -302,11 +302,11 @@ Links uploaded file to trade.
 
 Common error codes:
 
-* `INVALID_TOKEN`
-* `UNAUTHORIZED`
-* `RESOURCE_NOT_FOUND`
-* `VALIDATION_ERROR`
-* `RATE_LIMIT_EXCEEDED`
+- `INVALID_TOKEN`
+- `UNAUTHORIZED`
+- `RESOURCE_NOT_FOUND`
+- `VALIDATION_ERROR`
+- `RATE_LIMIT_EXCEEDED`
 
 ---
 

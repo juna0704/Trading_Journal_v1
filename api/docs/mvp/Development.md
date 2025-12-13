@@ -15,9 +15,9 @@ This document defines the **complete, step-by-step roadmap** for building the Tr
 
 Roadmap focuses on:
 
-* Fast delivery
-* Minimal scope
-* Clean upgrade path to full V1 later
+- Fast delivery
+- Minimal scope
+- Clean upgrade path to full V1 later
 
 Estimated Completion: **4–6 weeks**.
 
@@ -38,9 +38,9 @@ Milestone 8 → Deployment & QA
 
 Each milestone contains:
 
-* Deliverables
-* Breakdown tasks
-* Acceptance criteria
+- Deliverables
+- Breakdown tasks
+- Acceptance criteria
 
 ---
 
@@ -48,25 +48,25 @@ Each milestone contains:
 
 ### Deliverables
 
-* Repo structure created
-* Backend (Express + TS) initialized
-* Frontend (Next.js) initialized
-* PostgreSQL database provisioned
-* Migrations set up (Drizzle/Prisma)
+- Repo structure created
+- Backend (Express + TS) initialized
+- Frontend (Next.js) initialized
+- PostgreSQL database provisioned
+- Migrations set up (Drizzle/Prisma)
 
 ### Tasks
 
-* Initialize monorepo or separate repos
-* Configure environment variables
-* Set up Docker for local dev
-* Create base folder structure
-* Add linting, prettier, husky
+- Initialize monorepo or separate repos
+- Configure environment variables
+- Set up Docker for local dev
+- Create base folder structure
+- Add linting, prettier, husky
 
 ### Acceptance Criteria
 
-* Running API on localhost
-* Running Next.js app on localhost
-* Database migrations run successfully
+- Running API on localhost
+- Running Next.js app on localhost
+- Database migrations run successfully
 
 ---
 
@@ -74,26 +74,26 @@ Each milestone contains:
 
 ### Deliverables
 
-* User registration
-* Login with JWT
-* Refresh token rotation
-* Google OAuth login (optional but included in MVP)
+- User registration
+- Login with JWT
+- Refresh token rotation
+- Google OAuth login (optional but included in MVP)
 
 ### Tasks
 
-* Create `users` table
-* Implement register/login/refresh endpoints
-* Setup JWT utilities
-* Implement password hashing (argon2)
-* Store refresh tokens (DB or Redis optional)
-* Build Next.js login & register pages
-* Implement Google OAuth flow
+- Create `users` table
+- Implement register/login/refresh endpoints
+- Setup JWT utilities
+- Implement password hashing (argon2)
+- Store refresh tokens (DB or Redis optional)
+- Build Next.js login & register pages
+- Implement Google OAuth flow
 
 ### Acceptance Criteria
 
-* User can register and log in
-* Access token + refresh token flow works end to end
-* Authenticated requests pass middleware
+- User can register and log in
+- Access token + refresh token flow works end to end
+- Authenticated requests pass middleware
 
 ---
 
@@ -101,31 +101,31 @@ Each milestone contains:
 
 ### Deliverables
 
-* Full CRUD for trades
-* List & filter trades
-* Trade detail page
+- Full CRUD for trades
+- List & filter trades
+- Trade detail page
 
 ### Tasks
 
 #### Backend
 
-* Create `trades` table
-* Implement POST / GET / PUT / DELETE endpoints
-* Add basic filters: symbol, date range
-* Compute PnL on backend
+- Create `trades` table
+- Implement POST / GET / PUT / DELETE endpoints
+- Add basic filters: symbol, date range
+- Compute PnL on backend
 
 #### Frontend
 
-* Trade list page
-* Trade creation form
-* Trade editing
-* Pagination & filtering UI
+- Trade list page
+- Trade creation form
+- Trade editing
+- Pagination & filtering UI
 
 ### Acceptance Criteria
 
-* User can create/read/update/delete trades
-* Filters work
-* Data displays correctly in UI
+- User can create/read/update/delete trades
+- Filters work
+- Data displays correctly in UI
 
 ---
 
@@ -133,29 +133,29 @@ Each milestone contains:
 
 ### Deliverables
 
-* Upload trade screenshots
-* Store file metadata
-* Display attachments in UI
+- Upload trade screenshots
+- Store file metadata
+- Display attachments in UI
 
 ### Tasks
 
 #### Backend
 
-* Create `uploads` table
-* Implement `/uploads/presign` endpoint
-* Implement `/uploads/:id/confirm`
+- Create `uploads` table
+- Implement `/uploads/presign` endpoint
+- Implement `/uploads/:id/confirm`
 
 #### Frontend
 
-* Use presigned URL to upload directly to S3
-* Add file upload component to trade form
-* Show uploaded screenshots in trade detail page
+- Use presigned URL to upload directly to S3
+- Add file upload component to trade form
+- Show uploaded screenshots in trade detail page
 
 ### Acceptance Criteria
 
-* Upload works end-to-end
-* Files stored in S3 bucket
-* Uploaded images visible in UI
+- Upload works end-to-end
+- Files stored in S3 bucket
+- Uploaded images visible in UI
 
 ---
 
@@ -163,30 +163,30 @@ Each milestone contains:
 
 ### Deliverables
 
-* CSV upload
-* Background processing via BullMQ
-* Show job progress in UI
+- CSV upload
+- Background processing via BullMQ
+- Show job progress in UI
 
 ### Tasks
 
 #### Backend
 
-* Create `import_jobs` table
-* Implement `/imports` upload endpoint
-* Queue job to BullMQ
-* Worker to parse CSV & create trades
-* Update job status periodically
+- Create `import_jobs` table
+- Implement `/imports` upload endpoint
+- Queue job to BullMQ
+- Worker to parse CSV & create trades
+- Update job status periodically
 
 #### Frontend
 
-* Upload CSV UI
-* Show job progress (poll API)
+- Upload CSV UI
+- Show job progress (poll API)
 
 ### Acceptance Criteria
 
-* CSV imports work for at least 5,000 rows
-* Errors properly reported
-* Trades inserted successfully
+- CSV imports work for at least 5,000 rows
+- Errors properly reported
+- Trades inserted successfully
 
 ---
 
@@ -194,32 +194,32 @@ Each milestone contains:
 
 ### Deliverables
 
-* Dashboard summarizing key stats
-* Metrics computed on demand
+- Dashboard summarizing key stats
+- Metrics computed on demand
 
 ### Stats Included
 
-* Net PnL
-* Win rate
-* Best/worst trade
-* Total trades
+- Net PnL
+- Win rate
+- Best/worst trade
+- Total trades
 
 ### Tasks
 
 #### Backend
 
-* Create `/analytics/summary` endpoint
-* Aggregate trades using SQL queries
+- Create `/analytics/summary` endpoint
+- Aggregate trades using SQL queries
 
 #### Frontend
 
-* Dashboard UI
-* Stats card components
+- Dashboard UI
+- Stats card components
 
 ### Acceptance Criteria
 
-* Dashboard loads under 500ms
-* Stats match database values
+- Dashboard loads under 500ms
+- Stats match database values
 
 ---
 
@@ -227,24 +227,24 @@ Each milestone contains:
 
 ### Deliverables
 
-* Clean, consistent UI
-* Mobile responsive layout
-* Error states + validation
-* Toast notifications + loading states
+- Clean, consistent UI
+- Mobile responsive layout
+- Error states + validation
+- Toast notifications + loading states
 
 ### Tasks
 
-* Polish all pages
-* Add shadcn/ui components
-* Improve form designs
-* Add loading skeletons
-* Handle empty states
+- Polish all pages
+- Add shadcn/ui components
+- Improve form designs
+- Add loading skeletons
+- Handle empty states
 
 ### Acceptance Criteria
 
-* App feels smooth & usable
-* No broken layouts
-* All forms fully validated
+- App feels smooth & usable
+- No broken layouts
+- All forms fully validated
 
 ---
 
@@ -252,24 +252,24 @@ Each milestone contains:
 
 ### Deliverables
 
-* Frontend deployed (Vercel recommended)
-* Backend deployed (Railway/Render/Fly.io)
-* Database deployed (Neon/Supabase/Postgres server)
-* S3 bucket configured
+- Frontend deployed (Vercel recommended)
+- Backend deployed (Railway/Render/Fly.io)
+- Database deployed (Neon/Supabase/Postgres server)
+- S3 bucket configured
 
 ### Tasks
 
-* Configure production environment variables
-* Enable HTTPS
-* Set CORS
-* Set up logs & error tracking
-* Run manual QA checklist
+- Configure production environment variables
+- Enable HTTPS
+- Set CORS
+- Set up logs & error tracking
+- Run manual QA checklist
 
 ### Acceptance Criteria
 
-* Full MVP working in production
-* No 500 errors in logs
-* End-to-end flows tested
+- Full MVP working in production
+- No 500 errors in logs
+- End-to-end flows tested
 
 ---
 
@@ -287,21 +287,19 @@ Each milestone contains:
 
 # 12. Post-MVP (Backlog)
 
-These items come *after* MVP release:
+These items come _after_ MVP release:
 
-* Team collaboration & RBAC
-* Advanced analytics (expectancy, profit factor, heatmaps)
-* Automated email reports
-* Razorpay billing
-* Multi-tenancy with RLS
-* Real-time sync
-* Sentry monitoring
-* Mobile app
+- Team collaboration & RBAC
+- Advanced analytics (expectancy, profit factor, heatmaps)
+- Automated email reports
+- Razorpay billing
+- Multi-tenancy with RLS
+- Real-time sync
+- Sentry monitoring
+- Mobile app
 
 ---
 
 # 13. Summary
 
 This roadmap gives a clear, structured path to build the Trading Journal MVP from scratch to deployment with minimal complexity and maximum speed.
-
-

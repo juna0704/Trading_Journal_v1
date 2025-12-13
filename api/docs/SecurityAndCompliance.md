@@ -68,14 +68,14 @@ The Trading Journal implements a multi-layered security approach:
 
 ### 1.2 Security Principles
 
-| Principle | Implementation |
-|-----------|----------------|
-| **Least Privilege** | Users only access what they need - Members can only see their trades, not others' |
-| **Zero Trust** | Verify every request, internal/external - Even internal service calls require authentication |
-| **Defense in Depth** | Multiple security layers - Breach at one layer doesn't compromise entire system |
-| **Fail Securely** | Default deny, explicit allow - Unknown requests are rejected by default |
-| **Separation of Duties** | Development ≠ Production access - Developers cannot access production database directly |
-| **Complete Mediation** | Every access checked every time - No cached permissions, revalidated on each request |
+| Principle                | Implementation                                                                               |
+| ------------------------ | -------------------------------------------------------------------------------------------- |
+| **Least Privilege**      | Users only access what they need - Members can only see their trades, not others'            |
+| **Zero Trust**           | Verify every request, internal/external - Even internal service calls require authentication |
+| **Defense in Depth**     | Multiple security layers - Breach at one layer doesn't compromise entire system              |
+| **Fail Securely**        | Default deny, explicit allow - Unknown requests are rejected by default                      |
+| **Separation of Duties** | Development ≠ Production access - Developers cannot access production database directly      |
+| **Complete Mediation**   | Every access checked every time - No cached permissions, revalidated on each request         |
 
 ---
 
@@ -84,11 +84,13 @@ The Trading Journal implements a multi-layered security approach:
 ### 2.1 Authentication Flow Security
 
 **JWT Token Security:**
+
 - **Access Token:** Valid for 15 minutes, contains user identity, tenant, and role information
 - **Refresh Token:** Valid for 30 days, stored as HTTP-only cookie with strict security flags
 - **Token Rotation:** When refresh token is used, a new one is issued and old one invalidated
 
 **Password Security Requirements:**
+
 - **Minimum Length:** 8 characters
 - **Complexity Requirements:** Must include uppercase, lowercase, number, and special character
 - **Hashing Algorithm:** Argon2id with significant memory cost to prevent brute force attacks
@@ -99,6 +101,7 @@ The Trading Journal implements a multi-layered security approach:
 ### 2.2 Authorization Model
 
 **Role-Based Access Control (RBAC):**
+
 - **Owner:** Full workspace control including billing and user management
 - **Admin:** Can manage users and view all trades within workspace
 - **Member:** Can create/edit own trades and view analytics
@@ -116,22 +119,24 @@ The Trading Journal implements a multi-layered security approach:
 
 ### 3.1 Encryption Standards
 
-| Data Type | At Rest Protection | In Transit Protection |
-|-----------|-------------------|----------------------|
-| **Passwords** | Argon2id cryptographic hash | TLS 1.3 encryption |
-| **API Tokens** | HMAC-SHA256 signatures | TLS 1.3 encryption |
-| **Trade Data** | Database column encryption | TLS 1.3 encryption |
-| **File Uploads** | S3 server-side encryption | TLS 1.3 encryption |
-| **Backups** | AWS KMS master key encryption | TLS 1.3 encryption |
+| Data Type        | At Rest Protection            | In Transit Protection |
+| ---------------- | ----------------------------- | --------------------- |
+| **Passwords**    | Argon2id cryptographic hash   | TLS 1.3 encryption    |
+| **API Tokens**   | HMAC-SHA256 signatures        | TLS 1.3 encryption    |
+| **Trade Data**   | Database column encryption    | TLS 1.3 encryption    |
+| **File Uploads** | S3 server-side encryption     | TLS 1.3 encryption    |
+| **Backups**      | AWS KMS master key encryption | TLS 1.3 encryption    |
 
 ### 3.2 Sensitive Data Handling
 
 **Encrypted Fields Strategy:**
+
 - Broker API keys and other sensitive integration credentials are encrypted at application level before storage
-- Personally identifiable information is masked in API responses (emails shown as j****@example.com)
+- Personally identifiable information is masked in API responses (emails shown as j\*\*\*\*@example.com)
 - Financial calculations use decimal precision to prevent rounding errors or manipulation
 
 **Data Retention & Deletion:**
+
 - **Soft Delete:** Trades marked as deleted but retained for 30-day recovery window
 - **Automatic Cleanup:** After 30 days, deleted trades are permanently removed
 - **GDPR Compliance:** User deletion triggers anonymization procedure that replaces personal data with placeholder values while retaining financial records for tax compliance
@@ -145,6 +150,7 @@ The Trading Journal implements a multi-layered security approach:
 ### 4.1 Security Headers
 
 All API responses include comprehensive security headers:
+
 - **Strict-Transport-Security:** Forces HTTPS for one year including subdomains
 - **X-Content-Type-Options:** Prevents MIME type sniffing attacks
 - **X-Frame-Options:** Blocks page embedding to prevent clickjacking
@@ -156,16 +162,19 @@ All API responses include comprehensive security headers:
 ### 4.2 Input Validation & Sanitization
 
 **Validation Layers:**
+
 1. **Schema Validation:** All API requests validated against strict schemas before processing
 2. **Database Constraints:** Type checking, range validation, and foreign key integrity
 3. **Business Logic Validation:** Domain-specific rules like "exit price must be after entry price"
 
 **SQL Injection Prevention:**
+
 - All database queries use parameterized statements or ORM with built-in escaping
 - Never concatenate user input into SQL queries
 - Regular security scanning for potential injection vectors
 
 **XSS Prevention:**
+
 - User input in trade notes and descriptions is sanitized before display
 - Content Security Policy blocks inline scripts and unauthorized sources
 - Output encoding ensures user content is treated as data, not executable code
@@ -175,12 +184,14 @@ All API responses include comprehensive security headers:
 ### 4.3 Rate Limiting
 
 **Tiered Limits by Plan:**
+
 - **Unauthenticated:** 100 requests/hour per IP address
 - **Free Plan:** 1,000 requests/hour per user
 - **Pro Plan:** 10,000 requests/hour per user
 - **Enterprise:** 100,000 requests/hour per user
 
 **Critical Endpoint Protections:**
+
 - `/auth/login`: 10 attempts/hour per IP to prevent credential stuffing
 - `/auth/register`: 5 registrations/hour per IP to prevent spam accounts
 - `/auth/forgot-password`: 3 requests/hour per IP to prevent email bombing
@@ -195,11 +206,13 @@ All API responses include comprehensive security headers:
 ### 5.1 Cloud Infrastructure Protection
 
 **Network Security Design:**
+
 - **VPC Isolation:** Application runs in private virtual network with controlled access points
 - **Security Groups:** Fine-grained firewall rules allowing only necessary traffic
 - **Private Subnets:** Databases and Redis run in isolated subnets with no public internet access
 
 **Encryption Implementation:**
+
 - **EBS Volumes:** All storage volumes encrypted with AWS Key Management Service
 - **RDS Encryption:** Database storage, backups, and snapshots encrypted at rest
 - **S3 Encryption:** All file uploads automatically encrypted with server-side encryption
@@ -210,6 +223,7 @@ All API responses include comprehensive security headers:
 ### 5.2 Container Security
 
 **Docker Security Practices:**
+
 - Use specific version tags instead of "latest" for predictable builds
 - Create and run as non-root user inside containers
 - Copy application files with appropriate ownership permissions
@@ -231,19 +245,20 @@ All API responses include comprehensive security headers:
 
 ### 6.1 GDPR Compliance Checklist
 
-| Requirement | Trading Journal Implementation |
-|-------------|-------------------------------|
-| **Right to Access** | `/users/me/export` endpoint provides complete data export |
-| **Right to Erasure** | Anonymization procedure replaces personal data with placeholders |
-| **Data Portability** | CSV and JSON export formats for all trade data |
-| **Consent Management** | Registration includes explicit consent for data processing |
-| **DPA with Processors** | Signed agreements with AWS, Razorpay, and Cloudflare |
-| **Breach Notification** | 72-hour notification process for affected users |
-| **Privacy by Design** | Default privacy settings maximize user protection |
+| Requirement             | Trading Journal Implementation                                   |
+| ----------------------- | ---------------------------------------------------------------- |
+| **Right to Access**     | `/users/me/export` endpoint provides complete data export        |
+| **Right to Erasure**    | Anonymization procedure replaces personal data with placeholders |
+| **Data Portability**    | CSV and JSON export formats for all trade data                   |
+| **Consent Management**  | Registration includes explicit consent for data processing       |
+| **DPA with Processors** | Signed agreements with AWS, Razorpay, and Cloudflare             |
+| **Breach Notification** | 72-hour notification process for affected users                  |
+| **Privacy by Design**   | Default privacy settings maximize user protection                |
 
 ### 6.2 Data Processing Agreement Scope
 
 **Data Categories Processed:**
+
 - **Personal Data:** User email addresses, names, IP addresses, device information
 - **Financial Data:** Trade entries, profit/loss calculations, portfolio values
 - **Technical Data:** Access logs, performance metrics, error reports
@@ -251,6 +266,7 @@ All API responses include comprehensive security headers:
 **Lawful Basis:** Contract necessity - data processing required to provide trading journal services
 
 **Third-Party Processors:**
+
 - **AWS (USA):** Cloud infrastructure and hosting services
 - **Razorpay (India):** Payment processing and subscription management
 - **Cloudflare (USA):** Content delivery, DDoS protection, and Web Application Firewall
@@ -260,16 +276,19 @@ All API responses include comprehensive security headers:
 ### 6.3 Security Certification Roadmap
 
 **Phase 1 (Launch):**
+
 - SSL/TLS encryption for all communications
 - Regular third-party security audits
 - Automated vulnerability scanning
 
 **Phase 2 (6 Months Post-Launch):**
+
 - SOC 2 Type I assessment for security controls
 - Professional penetration testing engagement
 - Bug bounty program for responsible disclosure
 
 **Phase 3 (12 Months Post-Launch):**
+
 - ISO 27001 certification for information security management
 - GDPR compliance audit for European operations
 - PCI DSS assessment if payment processing expands
@@ -280,12 +299,12 @@ All API responses include comprehensive security headers:
 
 ### 7.1 Incident Classification
 
-| Level | Description | Example Scenario | Response Time |
-|-------|-------------|------------------|---------------|
-| **P1 - Critical** | Data breach, complete service outage | Database compromise, ransomware attack | < 1 hour |
-| **P2 - High** | Security vulnerability, partial outage | API vulnerability exposing trade data | < 4 hours |
-| **P3 - Medium** | Performance issues, non-critical bugs | Rate limiting failure causing slowdown | < 24 hours |
-| **P4 - Low** | Minor issues, feature requests | UI display bug, enhancement requests | < 72 hours |
+| Level             | Description                            | Example Scenario                       | Response Time |
+| ----------------- | -------------------------------------- | -------------------------------------- | ------------- |
+| **P1 - Critical** | Data breach, complete service outage   | Database compromise, ransomware attack | < 1 hour      |
+| **P2 - High**     | Security vulnerability, partial outage | API vulnerability exposing trade data  | < 4 hours     |
+| **P3 - Medium**   | Performance issues, non-critical bugs  | Rate limiting failure causing slowdown | < 24 hours    |
+| **P4 - Low**      | Minor issues, feature requests         | UI display bug, enhancement requests   | < 72 hours    |
 
 ### 7.2 Response Playbook
 
@@ -296,7 +315,7 @@ All API responses include comprehensive security headers:
 2. ACTIVATE: Incident response team with defined roles
 3. ASSESS: Determine scope (what data, when, how many affected)
 4. CONTAIN: Stop ongoing breach (revoke tokens, block IPs)
-5. NOTIFY: 
+5. NOTIFY:
    - Internal team: Immediately upon confirmation
    - Affected users: Within 72 hours per GDPR requirements
    - Authorities: If required by law or regulatory obligations
@@ -306,6 +325,7 @@ All API responses include comprehensive security headers:
 ```
 
 **Security Monitoring Examples:**
+
 - Multiple failed login attempts from same IP address
 - API access from unusual geographic locations
 - Rapid API calls indicating potential scraping or attack
@@ -320,32 +340,33 @@ All API responses include comprehensive security headers:
 
 ### 8.1 Testing Schedule
 
-| Test Type | Frequency | Purpose | Tools Used |
-|-----------|-----------|---------|------------|
-| **SAST** | Every commit | Catch code vulnerabilities early | SonarQube, Snyk Code |
-| **DAST** | Weekly | Find runtime vulnerabilities | OWASP ZAP, Burp Suite |
-| **Dependency Scan** | Daily | Identify vulnerable libraries | npm audit, Snyk Open Source |
-| **Penetration Test** | Quarterly | Professional security assessment | External security firm |
-| **Security Review** | Monthly | Architecture and design review | Internal security team |
+| Test Type            | Frequency    | Purpose                          | Tools Used                  |
+| -------------------- | ------------ | -------------------------------- | --------------------------- |
+| **SAST**             | Every commit | Catch code vulnerabilities early | SonarQube, Snyk Code        |
+| **DAST**             | Weekly       | Find runtime vulnerabilities     | OWASP ZAP, Burp Suite       |
+| **Dependency Scan**  | Daily        | Identify vulnerable libraries    | npm audit, Snyk Open Source |
+| **Penetration Test** | Quarterly    | Professional security assessment | External security firm      |
+| **Security Review**  | Monthly      | Architecture and design review   | Internal security team      |
 
 ### 8.2 OWASP Top 10 Mitigations
 
-| OWASP Risk | Trading Journal Mitigation |
-|------------|---------------------------|
-| **A01: Broken Access Control** | JWT validation, RBAC with tenant isolation, row-level security |
-| **A02: Cryptographic Failures** | Argon2id for passwords, TLS 1.3 everywhere, key rotation |
-| **A03: Injection** | Parameterized queries, input validation, ORM with escaping |
-| **A04: Insecure Design** | Threat modeling, security requirements, secure defaults |
-| **A05: Security Misconfiguration** | Hardened container images, security headers, minimal permissions |
-| **A06: Vulnerable Components** | Automated dependency scanning, regular updates, vulnerability monitoring |
-| **A07: Identification Failures** | Strong password policies, MFA-ready architecture, session management |
-| **A08: Software Integrity** | Code signing, secure CI/CD pipeline, artifact verification |
-| **A09: Security Logging** | Centralized logging, audit trails, alerting on suspicious activity |
-| **A10: SSRF** | Input validation, outbound firewall, restricted internal access |
+| OWASP Risk                         | Trading Journal Mitigation                                               |
+| ---------------------------------- | ------------------------------------------------------------------------ |
+| **A01: Broken Access Control**     | JWT validation, RBAC with tenant isolation, row-level security           |
+| **A02: Cryptographic Failures**    | Argon2id for passwords, TLS 1.3 everywhere, key rotation                 |
+| **A03: Injection**                 | Parameterized queries, input validation, ORM with escaping               |
+| **A04: Insecure Design**           | Threat modeling, security requirements, secure defaults                  |
+| **A05: Security Misconfiguration** | Hardened container images, security headers, minimal permissions         |
+| **A06: Vulnerable Components**     | Automated dependency scanning, regular updates, vulnerability monitoring |
+| **A07: Identification Failures**   | Strong password policies, MFA-ready architecture, session management     |
+| **A08: Software Integrity**        | Code signing, secure CI/CD pipeline, artifact verification               |
+| **A09: Security Logging**          | Centralized logging, audit trails, alerting on suspicious activity       |
+| **A10: SSRF**                      | Input validation, outbound firewall, restricted internal access          |
 
 ### 8.3 Security Checklist for Deployment
 
 **Pre-Deployment Requirements:**
+
 - [ ] Static Application Security Testing (SAST) passed with no critical issues
 - [ ] Dependency scanning clean with no high-risk vulnerabilities
 - [ ] Security architecture review completed and approved
@@ -353,6 +374,7 @@ All API responses include comprehensive security headers:
 - [ ] No secrets or credentials in code repository
 
 **Production Environment Setup:**
+
 - [ ] Web Application Firewall rules configured and tested
 - [ ] DDoS protection enabled and monitoring active
 - [ ] Security monitoring and alerting systems operational
@@ -360,6 +382,7 @@ All API responses include comprehensive security headers:
 - [ ] Incident response team identified and on-call
 
 **Ongoing Security Operations:**
+
 - [ ] Regular vulnerability scans of production environment
 - [ ] Security patch updates applied following change management
 - [ ] Quarterly access reviews for administrative accounts
@@ -375,6 +398,7 @@ All API responses include comprehensive security headers:
 ### Content Security Policy Implementation
 
 The Trading Journal implements a strict Content Security Policy that:
+
 - Allows scripts only from the application's own domain
 - Permits styles from the application and trusted CDNs
 - Restricts images to application domain and data URLs
@@ -386,6 +410,7 @@ The Trading Journal implements a strict Content Security Policy that:
 ### Security Headers Configuration
 
 All application responses include security headers that:
+
 - Force HTTPS usage for one year including subdomains
 - Prevent MIME type sniffing that could lead to execution of malicious content
 - Block page embedding in frames to prevent UI redress attacks
@@ -402,4 +427,4 @@ All application responses include security headers that:
 **Review Cycle:** Quarterly  
 **Distribution:** Development Team, Security Team, Operations Team
 
-*This document outlines the security controls and compliance framework for the Trading Journal application. All team members must adhere to these security practices and participate in regular security training.*
+_This document outlines the security controls and compliance framework for the Trading Journal application. All team members must adhere to these security practices and participate in regular security training._

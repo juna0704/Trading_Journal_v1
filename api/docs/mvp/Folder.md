@@ -16,8 +16,8 @@ It follows clean architecture principles and ensures easy scaling toward the ful
 
 The project is structured as **two separate applications**:
 
-* **Frontend:** Next.js 14 (App Router)
-* **Backend:** Express.js + TypeScript
+- **Frontend:** Next.js 14 (App Router)
+- **Backend:** Express.js + TypeScript
 
 Database and storage layers are external services (PostgreSQL + S3).
 
@@ -92,9 +92,9 @@ frontend/
 
 ### Frontend Notes
 
-* **Minimal pages** (login, register, dashboard, trades CRUD, CSV import)
-* **React Query optional** but recommended
-* **Presigned S3 upload logic** lives in `lib/api.ts`
+- **Minimal pages** (login, register, dashboard, trades CRUD, CSV import)
+- **React Query optional** but recommended
+- **Presigned S3 upload logic** lives in `lib/api.ts`
 
 ---
 
@@ -171,10 +171,10 @@ backend/
 
 ### Backend Notes
 
-* Each feature is isolated inside `/modules`
-* Zod schemas ensure clean request validation
-* Workers only include CSV import logic for MVP
-* JWT auth middleware enforces access control
+- Each feature is isolated inside `/modules`
+- Zod schemas ensure clean request validation
+- Workers only include CSV import logic for MVP
+- JWT auth middleware enforces access control
 
 ---
 
@@ -228,16 +228,16 @@ AWS_SECRET_ACCESS_KEY=xxx
 
 The MVP folder structure is designed to:
 
-* Be **simple** enough for fast development
-* Be **modular** enough for future scaling
-* Map directly to the features defined in MVP Documents #2–#5
+- Be **simple** enough for fast development
+- Be **modular** enough for future scaling
+- Map directly to the features defined in MVP Documents #2–#5
 
 It supports:
 
-* Clear separation of backend & frontend
-* Modular backend design
-* Future upgrade into microservices (if needed)
-* Clean developer onboarding
+- Clear separation of backend & frontend
+- Modular backend design
+- Future upgrade into microservices (if needed)
+- Clean developer onboarding
 
 ---
 
@@ -245,11 +245,11 @@ It supports:
 
 ### For full v1:
 
-* `/modules/billing` for Razorpay
-* `/modules/teams` for RBAC & multi-tenancy
-* `/modules/reports` for PDF generation
-* Workers for analytics, email, cleanup
-* `infra/k8s/` for Kubernetes deployments
+- `/modules/billing` for Razorpay
+- `/modules/teams` for RBAC & multi-tenancy
+- `/modules/reports` for PDF generation
+- Workers for analytics, email, cleanup
+- `infra/k8s/` for Kubernetes deployments
 
 ---
 
@@ -257,7 +257,7 @@ It supports:
 
 This folder structure provides a clean, scalable foundation for the MVP with:
 
-* Modular backend
-* Well-organized Next.js frontend
-* Clear separation of responsibilities
-* Ease of maintenance & feature growth
+- Modular backend
+- Well-organized Next.js frontend
+- Clear separation of responsibilities
+- Ease of maintenance & feature growth

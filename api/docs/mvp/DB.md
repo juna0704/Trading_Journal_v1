@@ -63,26 +63,26 @@ Stores all trade entries.
 
 **Table:** `trades`
 
-| Column          | Type          | Constraints                                                      |
-| --------------- | ------------- | ---------------------------------------------------------------- |
-| id              | UUID          | PK                                                               |
-| user_id         | UUID          | FK → users(id), ON DELETE CASCADE                                |
-| symbol          | VARCHAR(50)   | NOT NULL                                                         |
-| side            | VARCHAR(10)   | CHECK(side IN ('BUY','SELL','SHORT'))                            |
-| entry_price     | NUMERIC(12,2) | NOT NULL                                                         |
-| exit_price      | NUMERIC(12,2) | NULL (open trades allowed later)                                 |
-| quantity        | INTEGER       | NOT NULL                                                         |
-| pnl             | NUMERIC(12,2) | GENERATED ALWAYS AS (exit_price - entry_price) * quantity STORED |
-| entry_timestamp | TIMESTAMP     | NOT NULL                                                         |
-| exit_timestamp  | TIMESTAMP     | NULL                                                             |
-| notes           | TEXT          | NULL                                                             |
-| created_at      | TIMESTAMP     | DEFAULT now()                                                    |
-| updated_at      | TIMESTAMP     | DEFAULT now()                                                    |
+| Column          | Type          | Constraints                                                       |
+| --------------- | ------------- | ----------------------------------------------------------------- |
+| id              | UUID          | PK                                                                |
+| user_id         | UUID          | FK → users(id), ON DELETE CASCADE                                 |
+| symbol          | VARCHAR(50)   | NOT NULL                                                          |
+| side            | VARCHAR(10)   | CHECK(side IN ('BUY','SELL','SHORT'))                             |
+| entry_price     | NUMERIC(12,2) | NOT NULL                                                          |
+| exit_price      | NUMERIC(12,2) | NULL (open trades allowed later)                                  |
+| quantity        | INTEGER       | NOT NULL                                                          |
+| pnl             | NUMERIC(12,2) | GENERATED ALWAYS AS (exit_price - entry_price) \* quantity STORED |
+| entry_timestamp | TIMESTAMP     | NOT NULL                                                          |
+| exit_timestamp  | TIMESTAMP     | NULL                                                              |
+| notes           | TEXT          | NULL                                                              |
+| created_at      | TIMESTAMP     | DEFAULT now()                                                     |
+| updated_at      | TIMESTAMP     | DEFAULT now()                                                     |
 
 ### Notes
 
-* PnL auto-calculated using a **generated column**.
-* MVP supports simple trades only (no splits, partial exits, fees, etc.).
+- PnL auto-calculated using a **generated column**.
+- MVP supports simple trades only (no splits, partial exits, fees, etc.).
 
 ---
 
@@ -103,8 +103,8 @@ Stores uploaded screenshots/files linked to trades.
 
 ### Notes
 
-* `storage_key` stores the S3 object path.
-* MVP keeps a simple relationship: **each upload must belong to a trade**.
+- `storage_key` stores the S3 object path.
+- MVP keeps a simple relationship: **each upload must belong to a trade**.
 
 ---
 
@@ -244,9 +244,7 @@ These are **not** included in MVP but the schema is designed to grow.
 
 This MVP database schema is:
 
-* Minimal
-* Easy to migrate
-* Easy to extend
-* Compatible with the later full system architecture
-
-
+- Minimal
+- Easy to migrate
+- Easy to extend
+- Compatible with the later full system architecture

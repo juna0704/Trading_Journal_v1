@@ -6,7 +6,7 @@
 **Status:** Final  
 **API Version:** v1  
 **Last Updated:** December 10, 2025  
-**Based On:** Product Requirements v3.0, System Design v3.0  
+**Based On:** Product Requirements v3.0, System Design v3.0
 
 ---
 
@@ -20,7 +20,7 @@ This API specification implements the requirements from the **Product Requiremen
 **Content Type:** `application/json`  
 **API Standard:** REST with OpenAPI 3.1 compliance  
 **Multi-tenancy:** Tenant isolation via PostgreSQL RLS (refer to System Design 4.2)  
-**Rate Limiting:** Tier-based as per Product Requirements Appendix C  
+**Rate Limiting:** Tier-based as per Product Requirements Appendix C
 
 ---
 
@@ -50,24 +50,26 @@ This API specification implements the requirements from the **Product Requiremen
 ### 1.1 Architecture Implementation
 
 This API implements the architecture described in **System Design Document Section 7.1**. The flow is:
+
 ```
 Client → API Gateway → Auth Middleware → Tenant Context → RBAC → Route Handler → Service Layer → Database (with RLS)
 ```
 
 ### 1.2 Core Principles
 
-| Principle | Implementation | Reference |
-|-----------|----------------|-----------|
-| **RESTful Design** | Resource-based URLs, proper HTTP verbs | System Design 7.2 |
-| **Multi-tenancy** | Tenant isolation via PostgreSQL RLS | System Design 4.2 |
-| **RBAC** | Four roles: Owner, Admin, Member, Viewer | Product Requirements FR-AUTH-004 |
-| **Stateless** | JWT tokens, no server sessions | System Design 3.1 |
-| **Versioned** | URL versioning (`/api/v1/`) | System Design 7.2 |
-| **Paginated** | All list endpoints support cursor pagination | - |
+| Principle          | Implementation                               | Reference                        |
+| ------------------ | -------------------------------------------- | -------------------------------- |
+| **RESTful Design** | Resource-based URLs, proper HTTP verbs       | System Design 7.2                |
+| **Multi-tenancy**  | Tenant isolation via PostgreSQL RLS          | System Design 4.2                |
+| **RBAC**           | Four roles: Owner, Admin, Member, Viewer     | Product Requirements FR-AUTH-004 |
+| **Stateless**      | JWT tokens, no server sessions               | System Design 3.1                |
+| **Versioned**      | URL versioning (`/api/v1/`)                  | System Design 7.2                |
+| **Paginated**      | All list endpoints support cursor pagination | -                                |
 
 ### 1.3 Response Format Standards
 
 **Success Response:**
+
 ```json
 {
   "success": true,
@@ -80,6 +82,7 @@ Client → API Gateway → Auth Middleware → Tenant Context → RBAC → Route
 ```
 
 **Error Response:**
+
 ```json
 {
   "success": false,
@@ -96,6 +99,7 @@ Client → API Gateway → Auth Middleware → Tenant Context → RBAC → Route
 ```
 
 **List Response:**
+
 ```json
 {
   "success": true,
@@ -131,12 +135,13 @@ Implements the authentication flow described in **System Design Document Section
 ### 2.2 JWT Token Structure
 
 **Access Token Payload:** (refer to System Design 3.2)
+
 ```json
 {
   "sub": "user_abc123xyz",
   "email": "trader@example.com",
   "tenantId": "tenant_xyz789abc",
-  "role": "owner",  // owner/admin/member/viewer
+  "role": "owner", // owner/admin/member/viewer
   "iat": 1701950400,
   "exp": 1701951300,
   "type": "access"
@@ -148,6 +153,7 @@ Implements the authentication flow described in **System Design Document Section
 ### 2.3 Authorization Headers
 
 **Required:**
+
 ```http
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 X-Tenant-ID: tenant_xyz789abc  # Extracted from JWT, verified by middleware
@@ -160,6 +166,7 @@ X-Tenant-ID: tenant_xyz789abc  # Extracted from JWT, verified by middleware
 ### 3.1 Tenant Context
 
 All requests are scoped to a tenant. The tenant context is:
+
 1. Extracted from JWT token
 2. Set in request context
 3. Used for PostgreSQL RLS policies (System Design 4.2)
@@ -170,6 +177,7 @@ All requests are scoped to a tenant. The tenant context is:
 Uses cursor-based pagination for better performance with large datasets:
 
 **Query Parameters:**
+
 ```
 limit    - Items per page (default: 50, max: 100 per Product Requirements NFR)
 cursor   - Opaque cursor token for next page
@@ -178,6 +186,7 @@ cursor   - Opaque cursor token for next page
 ### 3.3 Filtering
 
 Supports filtering as per **Product Requirements US-10**:
+
 ```
 symbol      - Trading symbol
 tags        - Comma-separated tag IDs
@@ -192,6 +201,7 @@ win         - true/false for winning/losing trades
 ### 3.4 Date/Time Format
 
 All dates use ISO 8601 with timezone:
+
 - UTC: `2025-12-10T10:30:00Z`
 - IST: `2025-12-10T16:00:00+05:30`
 
@@ -205,11 +215,12 @@ All dates use ISO 8601 with timezone:
 **Implements:** Product Requirements US-01, FR-AUTH-001
 
 **Request Body:**
+
 ```json
 {
   "email": "trader@example.com",
   "name": "John Doe",
-  "password": "SecurePass123!"  // min 8 chars, 1 uppercase, 1 number, 1 special
+  "password": "SecurePass123!" // min 8 chars, 1 uppercase, 1 number, 1 special
 }
 ```
 
@@ -221,6 +232,7 @@ All dates use ISO 8601 with timezone:
 **Implements:** Product Requirements FR-AUTH-001
 
 **Request Body:**
+
 ```json
 {
   "email": "trader@example.com",
@@ -236,6 +248,7 @@ All dates use ISO 8601 with timezone:
 **Implements:** Product Requirements US-02, FR-AUTH-002
 
 **Request Body:**
+
 ```json
 {
   "code": "google_authorization_code",
@@ -269,6 +282,7 @@ All dates use ISO 8601 with timezone:
 **Implements:** Multi-tenant workspace from Product Requirements US-03
 
 **Response:**
+
 ```json
 {
   "id": "tenant_xyz789abc",
@@ -291,6 +305,7 @@ All dates use ISO 8601 with timezone:
 **Permissions:** Owner, Admin can list all members.
 
 **Response:**
+
 ```json
 {
   "items": [
@@ -312,10 +327,11 @@ All dates use ISO 8601 with timezone:
 **Implements:** Team collaboration from Product Requirements FR-COLLAB-001
 
 **Request Body:**
+
 ```json
 {
   "email": "newmember@example.com",
-  "role": "member",  // member/viewer
+  "role": "member", // member/viewer
   "message": "Join our trading workspace"
 }
 ```
@@ -328,9 +344,10 @@ All dates use ISO 8601 with timezone:
 **Implements:** RBAC management from Product Requirements US-04
 
 **Request Body:**
+
 ```json
 {
-  "role": "admin"  // Cannot change last owner's role
+  "role": "admin" // Cannot change last owner's role
 }
 ```
 
@@ -349,26 +366,28 @@ All dates use ISO 8601 with timezone:
 **Implements:** Product Requirements US-05 (Quick Trade Entry), FR-TRADE-001
 
 **Request Body:** (Implements trade schema from FR-TRADE-002)
+
 ```json
 {
   "symbol": "RELIANCE",
   "exchange": "NSE",
-  "side": "BUY",  // BUY/SELL/SHORT
-  "entryPrice": 2750.50,
-  "exitPrice": 2820.30,
+  "side": "BUY", // BUY/SELL/SHORT
+  "entryPrice": 2750.5,
+  "exitPrice": 2820.3,
   "quantity": 10,
-  "fees": 25.50,
+  "fees": 25.5,
   "entryTimestamp": "2025-12-10T09:15:00+05:30",
   "exitTimestamp": "2025-12-10T15:30:00+05:30",
   "notes": "Breakout above resistance",
   "tags": ["breakout", "largecap"],
   "strategy": "Momentum Breakout",
   "riskAmount": 1000,
-  "screenshots": ["upload_123abc"]  // Upload IDs from Section 8
+  "screenshots": ["upload_123abc"] // Upload IDs from Section 8
 }
 ```
 
 **Automated Calculations:** (FR-TRADE-003)
+
 - PnL, PnL percentage
 - Holding period
 - R-multiple (if riskAmount provided)
@@ -379,6 +398,7 @@ All dates use ISO 8601 with timezone:
 **Implements:** Product Requirements US-10 (Performance Filtering)
 
 **Query Parameters:**
+
 ```http
 GET /api/v1/trades?from=2025-12-01&to=2025-12-10&symbol=RELIANCE&tags=breakout,momentum&strategy=Momentum&marketCap=large&win=true&limit=50&cursor=next_page_token
 ```
@@ -405,6 +425,7 @@ GET /api/v1/trades?from=2025-12-01&to=2025-12-10&symbol=RELIANCE&tags=breakout,m
 **Content-Type:** `multipart/form-data`
 
 **Request:**
+
 ```
 file: CSV file (max 20MB)
 mapping: JSON string for column mapping
@@ -418,6 +439,7 @@ mapping: JSON string for column mapping
 **Formats:** CSV, JSON, Excel (PDF for Pro+)
 
 **Request Body:**
+
 ```json
 {
   "format": "csv",
@@ -434,11 +456,12 @@ mapping: JSON string for column mapping
 **Implements:** Product Requirements US-12 (Trade Review Workflow)
 
 **Request Body:**
+
 ```json
 {
   "content": "Good entry timing. Consider tighter stop next time.",
-  "mentions": ["user_mentioneed"],  // @mentions for notifications
-  "status": "reviewed"  // reviewed/needs_work
+  "mentions": ["user_mentioneed"], // @mentions for notifications
+  "status": "reviewed" // reviewed/needs_work
 }
 ```
 
@@ -452,17 +475,18 @@ mapping: JSON string for column mapping
 **Implements:** Product Requirements US-08 (Real-Time Dashboard)
 
 **Response:**
+
 ```json
 {
-  "period": "month",  // today/week/month/quarter/year/custom
+  "period": "month", // today/week/month/quarter/year/custom
   "summary": {
-    "netPnl": 12450.50,
+    "netPnl": 12450.5,
     "winRate": 60.5,
     "profitFactor": 2.15,
     "avgWinLossRatio": 1.85,
     "totalTrades": 245,
-    "bestTrade": 2450.00,
-    "worstTrade": -850.00
+    "bestTrade": 2450.0,
+    "worstTrade": -850.0
   },
   "comparison": {
     "previousPeriod": "last_month",
@@ -478,6 +502,7 @@ mapping: JSON string for column mapping
 **Implements:** Product Requirements US-09 (Equity Curve Analysis)
 
 **Query Parameters:**
+
 ```http
 GET /api/v1/analytics/equity?from=2025-01-01&to=2025-12-10&granularity=daily&benchmark=nifty50
 ```
@@ -492,6 +517,7 @@ GET /api/v1/analytics/equity?from=2025-01-01&to=2025-12-10&granularity=daily&ben
 **Dimensions:** symbol, tag, strategy, dayOfWeek, month, hourOfDay
 
 **Response:**
+
 ```json
 {
   "dimension": "symbol",
@@ -500,7 +526,7 @@ GET /api/v1/analytics/equity?from=2025-01-01&to=2025-12-10&granularity=daily&ben
       "value": "RELIANCE",
       "trades": 28,
       "winRate": 67.9,
-      "totalPnl": 3245.50,
+      "totalPnl": 3245.5,
       "profitFactor": 2.85
     }
   ]
@@ -515,18 +541,20 @@ GET /api/v1/analytics/equity?from=2025-01-01&to=2025-12-10&granularity=daily&ben
 **Permissions:** Owner/Admin only.
 
 **Query Parameters:**
+
 ```http
 GET /api/v1/analytics/team?period=month&anonymous=true
 ```
 
 **Response:**
+
 ```json
 {
   "leaderboard": [
     {
       "userId": "user_abc123",
       "name": "John Doe",
-      "netPnl": 12450.50,
+      "netPnl": 12450.5,
       "winRate": 60.5,
       "profitFactor": 2.15,
       "trades": 45
@@ -546,10 +574,11 @@ GET /api/v1/analytics/team?period=month&anonymous=true
 **Implements:** Reporting from Product Requirements FR-ANALYTICS-003
 
 **Request Body:**
+
 ```json
 {
-  "type": "weekly",  // daily/weekly/monthly/custom
-  "format": "pdf",   // pdf/csv/html
+  "type": "weekly", // daily/weekly/monthly/custom
+  "format": "pdf", // pdf/csv/html
   "recipients": ["user1@example.com", "user2@example.com"],
   "sections": ["summary", "equity", "breakdown", "topTrades"]
 }
@@ -567,12 +596,13 @@ GET /api/v1/analytics/team?period=month&anonymous=true
 **Implements:** Product Requirements US-07 (Trade Attachments), System Design 9.1
 
 **Request Body:**
+
 ```json
 {
   "fileName": "chart-screenshot.png",
   "fileType": "image/png",
-  "fileSize": 245678,  // max 5MB per US-07 AC
-  "tradeId": "trade_abc123"  // Optional, can attach later
+  "fileSize": 245678, // max 5MB per US-07 AC
+  "tradeId": "trade_abc123" // Optional, can attach later
 }
 ```
 
@@ -595,6 +625,7 @@ GET /api/v1/analytics/team?period=month&anonymous=true
 ### 9.1 Tag Management
 
 **Endpoints:**
+
 - `GET /api/v1/tags` - List all tags
 - `POST /api/v1/tags` - Create tag
 - `PUT /api/v1/tags/:tagId` - Update tag
@@ -614,6 +645,7 @@ GET /api/v1/analytics/team?period=month&anonymous=true
 **Implements:** SaaS billing from Product Requirements Appendix D
 
 **Response:**
+
 ```json
 {
   "plan": "pro",
@@ -641,11 +673,12 @@ GET /api/v1/analytics/team?period=month&anonymous=true
 **Implements:** Razorpay integration from System Design 10.3
 
 **Request Body:**
+
 ```json
 {
   "plan": "pro",
   "interval": "monthly",
-  "trialDays": 14  // For new subscriptions
+  "trialDays": 14 // For new subscriptions
 }
 ```
 
@@ -669,6 +702,7 @@ GET /api/v1/analytics/team?period=month&anonymous=true
 **Implements:** Payment processing from System Design 10.1
 
 **Headers:**
+
 ```http
 X-Razorpay-Signature: generated_signature
 X-Razorpay-Event: subscription.charged
@@ -690,6 +724,7 @@ For background job notifications, cache invalidation.
 **Implements:** Background processing from System Design 8.1
 
 **Response:**
+
 ```json
 {
   "jobId": "import_abc123",
@@ -716,20 +751,21 @@ For background job notifications, cache invalidation.
 
 Implements error handling from **System Design 7.2**:
 
-| HTTP Status | Error Code | Description |
-|-------------|------------|-------------|
-| 400 | `VALIDATION_ERROR` | Request validation failed |
-| 401 | `INVALID_TOKEN` | Invalid/missing authentication |
-| 403 | `ACCESS_DENIED` | Insufficient permissions (RBAC) |
-| 403 | `PLAN_LIMIT_EXCEEDED` | Monthly trade limit reached |
-| 404 | `RESOURCE_NOT_FOUND` | Resource doesn't exist |
-| 409 | `CONFLICT` | Resource conflict (duplicate, edit locked) |
-| 429 | `RATE_LIMIT_EXCEEDED` | Rate limit exceeded (Product Requirements App C) |
-| 500 | `INTERNAL_ERROR` | Server error |
+| HTTP Status | Error Code            | Description                                      |
+| ----------- | --------------------- | ------------------------------------------------ |
+| 400         | `VALIDATION_ERROR`    | Request validation failed                        |
+| 401         | `INVALID_TOKEN`       | Invalid/missing authentication                   |
+| 403         | `ACCESS_DENIED`       | Insufficient permissions (RBAC)                  |
+| 403         | `PLAN_LIMIT_EXCEEDED` | Monthly trade limit reached                      |
+| 404         | `RESOURCE_NOT_FOUND`  | Resource doesn't exist                           |
+| 409         | `CONFLICT`            | Resource conflict (duplicate, edit locked)       |
+| 429         | `RATE_LIMIT_EXCEEDED` | Rate limit exceeded (Product Requirements App C) |
+| 500         | `INTERNAL_ERROR`      | Server error                                     |
 
 ### 13.2 Validation Errors
 
 Detailed field-level errors:
+
 ```json
 {
   "error": {
@@ -754,15 +790,16 @@ Detailed field-level errors:
 
 Implements limits from **Product Requirements Appendix C**:
 
-| Tier | API Calls/Hour | Trade Entries/Day | File Uploads/Month |
-|------|----------------|-------------------|-------------------|
-| Free | 1,000 | 100 | 50MB |
-| Pro | 10,000 | 1,000 | 1GB |
-| Enterprise | 100,000 | Unlimited | 10GB |
+| Tier       | API Calls/Hour | Trade Entries/Day | File Uploads/Month |
+| ---------- | -------------- | ----------------- | ------------------ |
+| Free       | 1,000          | 100               | 50MB               |
+| Pro        | 10,000         | 1,000             | 1GB                |
+| Enterprise | 100,000        | Unlimited         | 10GB               |
 
 ### 14.2 Rate Limit Headers
 
 **Response Headers:**
+
 ```http
 X-RateLimit-Limit: 1000
 X-RateLimit-Remaining: 850
@@ -777,6 +814,7 @@ Retry-After: 60  # When exceeded
 ### 15.1 Security Headers
 
 All responses include security headers as per **System Design 13.2**:
+
 - `Strict-Transport-Security: max-age=31536000; includeSubDomains`
 - `Content-Security-Policy`
 - `X-Frame-Options: DENY`
@@ -796,24 +834,25 @@ Uses parameterized queries via DrizzleORM (System Design 13.2).
 ### 16.1 Trade Model
 
 Implements schema from **Product Requirements FR-TRADE-002**:
+
 ```typescript
 interface Trade {
-  id: string;           // UUID
-  tenantId: string;     // RLS tenant isolation
-  userId: string;       // Trade owner
-  symbol: string;       // Trading symbol
-  exchange: string;     // NSE/BSE/etc
+  id: string; // UUID
+  tenantId: string; // RLS tenant isolation
+  userId: string; // Trade owner
+  symbol: string; // Trading symbol
+  exchange: string; // NSE/BSE/etc
   side: 'BUY' | 'SELL' | 'SHORT';
   entryPrice: number;
   exitPrice: number;
   quantity: number;
   fees: number;
-  pnl: number;          // Calculated field
-  pnlPercent: number;   // Calculated field
+  pnl: number; // Calculated field
+  pnlPercent: number; // Calculated field
   entryTimestamp: Date;
   exitTimestamp: Date;
   notes?: string;
-  tags: string[];       // Tag IDs
+  tags: string[]; // Tag IDs
   strategy?: string;
   attachments: string[]; // Upload IDs
   status: 'OPEN' | 'CLOSED' | 'PARTIAL';
@@ -825,6 +864,7 @@ interface Trade {
 ### 16.2 User Model
 
 Implements RBAC from **Product Requirements FR-AUTH-004**:
+
 ```typescript
 interface User {
   id: string;
@@ -843,12 +883,14 @@ interface User {
 ## Appendix A: OpenAPI Specification
 
 The complete OpenAPI 3.1 specification is available at:
+
 - `https://api.tradingjournal.com/api-docs` (Interactive Swagger UI)
 - `https://api.tradingjournal.com/openapi.json` (JSON specification)
 
 ## Appendix B: SDKs & Client Libraries
 
 Official SDKs available:
+
 - JavaScript/TypeScript: `@tradingjournal/sdk`
 - Python: `tradingjournal-python`
 - Postman Collection: Available in documentation
@@ -856,6 +898,7 @@ Official SDKs available:
 ## Appendix C: Migration Guides
 
 API version migration guides available at:
+
 - `https://docs.tradingjournal.com/api/migration`
 
 ---
@@ -864,6 +907,7 @@ API version migration guides available at:
 **Last Updated:** December 10, 2025  
 **Maintained By:** API Team  
 **Contact:** api-support@tradingjournal.com  
-**Reference Documents:** 
+**Reference Documents:**
+
 - Product Requirements Document v3.0 (Sections 4, 5, Appendix C, D)
 - System Design Document v3.0 (Sections 3, 4, 7, 8, 9, 10, 13)

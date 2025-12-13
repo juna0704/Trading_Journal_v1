@@ -20,8 +20,8 @@ The MVP consists of four primary layers:
 
 Additional supporting systems:
 
-* **Authentication (JWT + Google OAuth)**
-* **Background Jobs for Imports (BullMQ)**
+- **Authentication (JWT + Google OAuth)**
+- **Background Jobs for Imports (BullMQ)**
 
 ---
 
@@ -35,11 +35,11 @@ User → Next.js Frontend → Express API → PostgreSQL
 
 ### Core Flows Implemented in MVP
 
-* User login (email/password + Google OAuth)
-* Create/read/update/delete trades
-* Basic analytics summaries (computed on-demand)
-* CSV import via background job
-* Upload screenshots/files to S3
+- User login (email/password + Google OAuth)
+- Create/read/update/delete trades
+- Basic analytics summaries (computed on-demand)
+- CSV import via background job
+- Upload screenshots/files to S3
 
 ---
 
@@ -47,17 +47,17 @@ User → Next.js Frontend → Express API → PostgreSQL
 
 ### Responsibilities
 
-* User authentication & session handling
-* UI for viewing & managing trades
-* Uploading attachments directly to S3
-* Making API calls to backend
+- User authentication & session handling
+- UI for viewing & managing trades
+- Uploading attachments directly to S3
+- Making API calls to backend
 
 ### Components Used
 
-* **Next.js App Router**
-* **React** components for UI
-* **Tailwind CSS + shadcn/ui** for basic styling
-* **React Query** for server-state caching (optional but beneficial)
+- **Next.js App Router**
+- **React** components for UI
+- **Tailwind CSS + shadcn/ui** for basic styling
+- **React Query** for server-state caching (optional but beneficial)
 
 ### Pages Required for MVP
 
@@ -76,20 +76,20 @@ The backend exposes REST API endpoints and handles core logic.
 
 ### Responsibilities
 
-* Authentication (JWT + Refresh tokens)
-* Trade CRUD logic
-* CSV import processing (job queue)
-* Generating presigned URLs
-* Validating input (Zod recommended)
-* Role-based access (Owner only for MVP)
+- Authentication (JWT + Refresh tokens)
+- Trade CRUD logic
+- CSV import processing (job queue)
+- Generating presigned URLs
+- Validating input (Zod recommended)
+- Role-based access (Owner only for MVP)
 
 ### MVP API Modules
 
-* `/auth` → register/login/logout/refresh/oauth callback
-* `/trades` → CRUD & list/filter
-* `/uploads` → presign + confirm
-* `/imports` → upload CSV + track status
-* `/analytics` → simple summary metrics
+- `/auth` → register/login/logout/refresh/oauth callback
+- `/trades` → CRUD & list/filter
+- `/uploads` → presign + confirm
+- `/imports` → upload CSV + track status
+- `/analytics` → simple summary metrics
 
 ---
 
@@ -108,8 +108,8 @@ MVP uses a **single database** with minimal tables.
 
 ### Multi-tenancy Approach
 
-* MVP still uses **tenant_id** in tables.
-* Full RLS implementation optional; simple filtering by tenant is enough for MVP.
+- MVP still uses **tenant_id** in tables.
+- Full RLS implementation optional; simple filtering by tenant is enough for MVP.
 
 ---
 
@@ -117,8 +117,8 @@ MVP uses a **single database** with minimal tables.
 
 Used for:
 
-* Trade screenshots
-* CSV import files (optional temporary)
+- Trade screenshots
+- CSV import files (optional temporary)
 
 ### MVP Upload Flow
 
@@ -142,7 +142,7 @@ Used only for **CSV import processing**.
 
 ### Job Types in MVP
 
-* `trade_import`
+- `trade_import`
 
 Advanced jobs (analytics, reports, emails) are excluded from MVP.
 
@@ -152,10 +152,10 @@ Advanced jobs (analytics, reports, emails) are excluded from MVP.
 
 ### Supported Methods
 
-* **Email + Password login**
-* **Google OAuth**
-* **JWT access token (15 min)**
-* **Refresh token (HTTP-only cookie)**
+- **Email + Password login**
+- **Google OAuth**
+- **JWT access token (15 min)**
+- **Refresh token (HTTP-only cookie)**
 
 ### MVP Auth Flow
 
@@ -165,10 +165,9 @@ Login → Issue tokens → Store refresh token in DB → Client stores access to
 
 ### Authorization
 
-* Only two roles needed for MVP:
-
-  * **owner** (full access)
-  * **member** (optional; limited CRUD)
+- Only two roles needed for MVP:
+  - **owner** (full access)
+  - **member** (optional; limited CRUD)
 
 ---
 
@@ -195,26 +194,26 @@ Worker → Fetch CSV → Process → PostgreSQL
 
 ### Performance
 
-* API P95 response < 300ms
-* Max file size upload: 5MB
-* CSV rows limit: 5,000 rows
+- API P95 response < 300ms
+- Max file size upload: 5MB
+- CSV rows limit: 5,000 rows
 
 ### Security
 
-* JWT-based authentication
-* HTTPS only
-* Input validation for all endpoints
-* Basic rate limiting (IP-based)
+- JWT-based authentication
+- HTTPS only
+- Input validation for all endpoints
+- Basic rate limiting (IP-based)
 
 ### Reliability
 
-* At least 99% uptime acceptable for MVP
-* Daily DB backup
+- At least 99% uptime acceptable for MVP
+- Daily DB backup
 
 ### Scalability
 
-* Stateless API server (container ready)
-* Redis optional, but used if jobs enabled
+- Stateless API server (container ready)
+- Redis optional, but used if jobs enabled
 
 ---
 
@@ -237,9 +236,7 @@ Worker → Fetch CSV → Process → PostgreSQL
 This MVP Architecture defines the minimal, scalable foundation of the Trading Journal SaaS.
 It ensures:
 
-* Clean separation of concerns
-* Minimal dependencies
-* Smooth migration to full V1 architecture later
-* Low cost during early development
-
-
+- Clean separation of concerns
+- Minimal dependencies
+- Smooth migration to full V1 architecture later
+- Low cost during early development

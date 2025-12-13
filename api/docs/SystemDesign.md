@@ -4,7 +4,7 @@
 **Version:** 3.0  
 **Status:** Final  
 **Last Updated:** December 10, 2025  
-**Author:** Junaid Ali Khan  
+**Author:** Junaid Ali Khan
 
 ## 1. System Architecture Overview
 
@@ -14,47 +14,47 @@
 graph TB
     %% USERS
     User[👤 User<br/>Traders & Teams] --> Client
-    
+
     %% FRONTEND LAYER
     subgraph Frontend["📱 Frontend - Next.js"]
         Client[💻 Web App<br/>Dashboard & Forms]
     end
-    
+
     %% API REQUESTS
     Client -->|HTTP Requests| API
-    
+
     %% API LAYER WITH AUTH
     subgraph Backend["⚙️ Backend API - Express.js"]
         API[🌐 REST API<br/>Endpoints]
         API --> Auth[🔐 Authentication<br/>JWT + Google]
         API -->|After Auth| Services[🔧 Services<br/>Business Logic]
     end
-    
+
     %% EXTERNAL SERVICES
     subgraph External["🌐 External Services"]
         Razorpay[💳 Razorpay<br/>Payments]
         Email[📧 Resend<br/>Email]
         OAuth[🔓 Google<br/>OAuth Login]
     end
-    
+
     Auth -->|Login Flow| OAuth
     Services -->|Process Payment| Razorpay
     Services -->|Send Email| Email
-    
+
     %% BACKGROUND WORKERS
     Workers[🔧 Background Workers<br/>BullMQ] -->|Process| DB
     Workers -->|Upload| Storage
     Workers -->|Send| Email
-    
+
     Services -.->|Queue Jobs| Workers
-    
+
     %% DATA LAYER
     subgraph DataLayer["🗄️ Data & Storage"]
         DB[(📊 PostgreSQL<br/>Trades & Users)]
         Redis[(⚡ Redis<br/>Cache & Queue)]
         Storage[☁️ S3 Storage<br/>Files & Reports]
     end
-    
+
     %% DATA FLOW
     Services -->|Read/Write| DB
     Services -->|Cache| Redis
@@ -65,6 +65,7 @@ graph TB
 ### 1.2 Technology Stack Overview
 
 **Frontend Layer:**
+
 - **Next.js 14** with App Router for server-side rendering and API routes
 - **React 18** with modern hooks and concurrent features
 - **Tailwind CSS + shadcn/ui** for consistent, accessible UI components
@@ -72,6 +73,7 @@ graph TB
 - **Recharts** for data visualization and equity curves
 
 **Application Layer:**
+
 - **Express.js** with TypeScript for robust API development
 - **DrizzleORM** for type-safe database interactions
 - **BullMQ** with Redis for background job processing
@@ -79,11 +81,13 @@ graph TB
 - **JWT + Argon2** for secure authentication
 
 **Data Layer:**
+
 - **PostgreSQL (Neon)** for primary data storage with RLS
 - **Redis (Upstash)** for caching, sessions, and job queues
 - **AWS S3** for file storage with direct client uploads
 
 **Infrastructure:**
+
 - **Vercel** for frontend deployment with global CDN
 - **Render/Railway** for backend API and workers
 - **Razorpay** for subscription billing and payments
@@ -110,24 +114,24 @@ graph TD
     Layouts[🧩 Layouts<br/>Auth/Unauth] --> Components
     Components[🧩 Components<br/>Modular UI] --> Services
     Services[⚡ Services<br/>API Client] --> API[🌐 Backend API]
-    
+
     subgraph "State Management"
         ServerState[🔄 Server State<br/>React Query]
         ClientState[💾 Client State<br/>Zustand]
         FormState[📝 Form State<br/>React Hook Form]
     end
-    
+
     Components --> ServerState
     Components --> ClientState
     Components --> FormState
-    
+
     subgraph "UI Components"
         Charts[📈 Charts<br/>Recharts]
         Tables[📋 Data Tables<br/>TanStack Table]
         Forms[✏️ Forms<br/>shadcn/ui]
         Dashboard[📊 Dashboard<br/>Metric Cards]
     end
-    
+
     Components --> Charts
     Components --> Tables
     Components --> Forms
@@ -135,6 +139,7 @@ graph TD
 ```
 
 **Frontend Structure:**
+
 - **App Router**: Page-based routing with server components for performance
 - **Layout System**: Separate layouts for authenticated/unauthenticated users
 - **Component Library**: Reusable UI components built with Tailwind CSS
@@ -142,6 +147,7 @@ graph TD
 - **State Management**: Hybrid approach with React Query for server data, Zustand for client state
 
 **Key Frontend Features:**
+
 - **Dashboard**: Real-time performance metrics and equity curve visualization
 - **Trade Journal**: Form-based trade entry with validation and autocomplete
 - **Analytics Hub**: Interactive charts and performance breakdowns
@@ -155,7 +161,7 @@ graph LR
     API[🌐 API Gateway<br/>Express Server] --> Middleware
     Middleware[🛡️ Middleware Stack] --> Routes
     Routes[🛣️ Route Handlers] --> Services
-    
+
     subgraph "Middleware Layer"
         AuthMiddleware[🔐 Authentication]
         TenantMiddleware[🏢 Tenant Context]
@@ -163,7 +169,7 @@ graph LR
         Validation[✓ Input Validation]
         RateLimit[🚫 Rate Limiting]
     end
-    
+
     subgraph "Service Layer"
         TradeService[💹 Trade Management]
         AnalyticsService[📊 Analytics Engine]
@@ -171,16 +177,16 @@ graph LR
         ImportService[📁 Data Import]
         EmailService[📧 Notifications]
     end
-    
+
     Services --> DataAccess
     DataAccess[🗄️ Data Access Layer] --> DB[(PostgreSQL)]
-    
+
     subgraph "Infrastructure Services"
         Cache[⚡ Redis Cache]
         Queue[🔧 BullMQ Queue]
         Storage[☁️ S3 Storage]
     end
-    
+
     Services --> Cache
     Services --> Queue
     Services --> Storage
@@ -189,11 +195,13 @@ graph LR
 **Backend Layer Responsibilities:**
 
 **API Gateway:**
+
 - HTTP request/response handling
 - Routing and endpoint management
 - Error handling and logging
 
 **Middleware Stack:**
+
 - **Authentication**: JWT validation and user context extraction
 - **Tenant Isolation**: Sets tenant context for RLS policies
 - **RBAC**: Role-based permission checking
@@ -201,6 +209,7 @@ graph LR
 - **Rate Limiting**: Protects against abuse and DoS attacks
 
 **Service Layer:**
+
 - **TradeService**: Business logic for trade creation, updates, and calculations
 - **AnalyticsService**: Performance metric computation and caching
 - **BillingService**: Subscription management and payment processing
@@ -218,7 +227,7 @@ sequenceDiagram
     participant Backend as ⚙️ Backend
     participant DB as 🗄️ Database
     participant Redis as ⚡ Redis
-    
+
     Note over User,Redis: Email/Password Login Flow
     User->>Frontend: Enters credentials
     Frontend->>Backend: POST /api/auth/login
@@ -229,7 +238,7 @@ sequenceDiagram
     Backend->>Redis: Store refresh token
     Backend-->>Frontend: Access token + HTTP-only refresh cookie
     Frontend-->>User: Dashboard access
-    
+
     Note over User,Redis: Token Refresh Flow
     Frontend->>Backend: POST /api/auth/refresh (with cookie)
     Backend->>Redis: Validate refresh token
@@ -237,7 +246,7 @@ sequenceDiagram
     Backend->>Backend: Rotate tokens
     Backend->>Redis: Delete old, store new
     Backend-->>Frontend: New access token
-    
+
     Note over User,Redis: Google OAuth Flow
     User->>Frontend: Click "Login with Google"
     Frontend->>Google: OAuth redirect
@@ -252,17 +261,20 @@ sequenceDiagram
 ### 3.2 Authentication Components
 
 **Token Strategy:**
+
 - **Access Tokens**: JWT tokens with 15-minute expiry, containing user ID, tenant ID, and role
 - **Refresh Tokens**: Random strings stored in Redis with 7-day expiry, sent as HTTP-only cookies
 - **Token Rotation**: Refresh tokens are rotated on each use to prevent replay attacks
 
 **Password Security:**
+
 - **Argon2id** for password hashing with memory-hard properties
 - **Pepper** (application secret) added to passwords before hashing
 - **Rate limiting** on authentication endpoints (10 attempts/hour)
 - **Account lockout** after 5 failed attempts (30-minute cooldown)
 
 **Multi-factor Authentication (Future):**
+
 - TOTP-based 2FA for enhanced security
 - Backup codes for recovery
 - Email/SMS fallback options
@@ -279,11 +291,11 @@ graph TD
         Member[👤 Member<br/>Trade Operations]
         Viewer[👁️ Viewer<br/>Read-Only]
     end
-    
+
     Owner --> Admin
     Admin --> Member
     Member --> Viewer
-    
+
     subgraph "Owner Permissions"
         O1[Manage Users]
         O2[Manage Billing]
@@ -291,21 +303,21 @@ graph TD
         O4[Configure Workspace]
         O5[Delete Workspace]
     end
-    
+
     subgraph "Admin Permissions"
         A1[Invite Users]
         A2[Assign Roles]
         A3[View All Trades]
         A4[Manage Tags]
     end
-    
+
     subgraph "Member Permissions"
         M1[Create Trades]
         M2[Edit Own Trades]
         M3[View Analytics]
         M4[Export Own Data]
     end
-    
+
     subgraph "Viewer Permissions"
         V1[View Trades]
         V2[View Analytics]
@@ -328,6 +340,7 @@ graph TD
 | Manage Tags | ✅ | ✅ | ❌ | ❌ |
 
 **Resource-Level Permissions:**
+
 - Trades are owned by individual users but visible to team members based on role
 - Analytics data aggregates across the workspace
 - Billing information only accessible to workspace owners
@@ -341,7 +354,7 @@ graph TD
 graph TB
     subgraph "Multi-Tenant Database"
         DB[(PostgreSQL Database)]
-        
+
         subgraph "Shared Schema"
             TenantsTable[tenants<br/>ID, Name, Plan]
             UsersTable[users<br/>Email, Password]
@@ -349,28 +362,28 @@ graph TB
             TenantUsersTable[tenant_users<br/>Roles]
         end
     end
-    
+
     subgraph "Tenant Context"
         Request[🌐 HTTP Request] --> Middleware
         Middleware[🏢 Tenant Middleware] --> Context
         Context[🔧 Tenant Context<br/>tenant_id=X]
     end
-    
+
     Context --> RLS[🔒 Row-Level Security]
     RLS --> TenantsTable
     RLS --> TradesTable
     RLS --> TenantUsersTable
-    
+
     subgraph "Tenant 1 Data"
         T1_Trades[Trades for Tenant 1]
         T1_Users[Users in Tenant 1]
     end
-    
+
     subgraph "Tenant 2 Data"
         T2_Trades[Trades for Tenant 2]
         T2_Users[Users in Tenant 2]
     end
-    
+
     TradesTable -.-> T1_Trades
     TradesTable -.-> T2_Trades
     TenantUsersTable -.-> T1_Users
@@ -382,12 +395,14 @@ graph TB
 **Row-Level Security (RLS) Policies:**
 
 **Core Principles:**
+
 1. Every tenant-scoped table includes a `tenant_id` column
 2. RLS policies automatically filter queries to current tenant
 3. Application middleware sets tenant context for each request
 4. Cross-tenant data access is impossible at database level
 
 **Sample RLS Policy:**
+
 ```sql
 -- Enable RLS on trades table
 ALTER TABLE trades ENABLE ROW LEVEL SECURITY;
@@ -405,6 +420,7 @@ CREATE POLICY member_trade_edit ON trades FOR UPDATE
 ```
 
 **Application-Level Enforcement:**
+
 1. Authentication middleware extracts tenant ID from JWT
 2. Tenant context set before each database query
 3. Role-based checks before sensitive operations
@@ -413,6 +429,7 @@ CREATE POLICY member_trade_edit ON trades FOR UPDATE
 ### 4.3 Scaling Considerations
 
 **Current Approach (MVP):**
+
 - Single PostgreSQL database with RLS
 - All tenants share the same schema
 - Cost-effective for early stage
@@ -421,22 +438,24 @@ CREATE POLICY member_trade_edit ON trades FOR UPDATE
 **Future Scaling Options:**
 
 **Database Sharding:**
+
 ```mermaid
 graph LR
     Router[🎯 Shard Router] --> Shard1[(Tenants 1-1000)]
     Router --> Shard2[(Tenants 1001-2000)]
     Router --> Shard3[(Tenants 2001-3000)]
-    
+
     subgraph "Shard Management"
         Lookup[🔍 Shard Lookup Service]
         Migrator[🚚 Data Migrator]
     end
-    
+
     Router --> Lookup
     Lookup --> Router
 ```
 
 **Hybrid Approach:**
+
 - **Small Tenants**: Remain in shared database
 - **Enterprise Tenants**: Migrate to dedicated database
 - **Geographic Distribution**: Database replicas in different regions
@@ -456,7 +475,7 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    
+
     tenants {
         uuid id PK
         string name
@@ -465,7 +484,7 @@ erDiagram
         jsonb settings
         timestamp created_at
     }
-    
+
     tenant_users {
         uuid id PK
         uuid tenant_id FK
@@ -473,7 +492,7 @@ erDiagram
         string role
         timestamp joined_at
     }
-    
+
     trades {
         uuid id PK
         uuid tenant_id FK
@@ -489,14 +508,14 @@ erDiagram
         text notes
         timestamp created_at
     }
-    
+
     tags {
         uuid id PK
         uuid tenant_id FK
         string name
         string color
     }
-    
+
     uploads {
         uuid id PK
         uuid tenant_id FK
@@ -505,7 +524,7 @@ erDiagram
         string storage_key
         integer size_bytes
     }
-    
+
     subscriptions {
         uuid id PK
         uuid tenant_id FK UK
@@ -513,7 +532,7 @@ erDiagram
         string status
         timestamp current_period_end
     }
-    
+
     users ||--o{ tenant_users : "belongs to"
     tenants ||--o{ tenant_users : "has members"
     tenants ||--o{ trades : "contains"
@@ -529,24 +548,28 @@ erDiagram
 ### 5.2 Key Tables Description
 
 **1. Users Table:**
+
 - Stores user credentials and profile information
 - Supports both email/password and OAuth authentication
 - Email verification and password reset workflows
 - Each user can belong to multiple tenants with different roles
 
 **2. Tenants Table:**
+
 - Represents a workspace/company account
 - Contains subscription plan and settings
 - Each tenant has one owner (user) and multiple members
 - Trial period and subscription status tracking
 
 **3. Trades Table:**
+
 - Core trading journal data with all transaction details
 - Generated columns for PnL calculations (avoid application-level errors)
 - Indexed for common query patterns (date ranges, symbols, performance)
 - Soft delete support with audit trail
 
 **4. Analytics Cache Table:**
+
 - Pre-computed metrics for dashboard performance
 - Aggregated by time period (daily, weekly, monthly)
 - Automatically invalidated when new trades are added
@@ -564,11 +587,13 @@ erDiagram
 | analytics_cache | (tenant_id, period, date) | Quick metric retrieval | Composite |
 
 **Partitioning Considerations:**
+
 - Trades table partitioned by `tenant_id` for large customers
 - Historical data moved to cold storage after 2 years
 - Time-series partitions for analytics data
 
 **Query Optimization:**
+
 - Materialized views for complex aggregations
 - Stored procedures for common calculations
 - Connection pooling with pgBouncer
@@ -587,14 +612,14 @@ graph TB
         ImportService[📁 Import Service]
         EmailService[📧 Email Service]
     end
-    
+
     subgraph "Infrastructure Services"
         CacheService[⚡ Cache Service]
         StorageService[☁️ Storage Service]
         QueueService[🔧 Queue Service]
         AuthService[🔐 Auth Service]
     end
-    
+
     TradeService --> CacheService
     TradeService --> QueueService
     AnalyticsService --> CacheService
@@ -602,7 +627,7 @@ graph TB
     ImportService --> TradeService
     ImportService --> QueueService
     EmailService --> QueueService
-    
+
     CacheService --> Redis[(Redis)]
     StorageService --> S3[(S3)]
     QueueService --> BullMQ[BullMQ]
@@ -612,6 +637,7 @@ graph TB
 ### 6.2 Service Responsibilities
 
 **Trade Service:**
+
 - **Trade CRUD Operations**: Create, read, update, delete trades with validation
 - **PnL Calculations**: Real-time profit/loss computation with fees
 - **Bulk Operations**: Import/export functionality for large datasets
@@ -619,6 +645,7 @@ graph TB
 - **Audit Trail**: Track changes to trades for compliance
 
 **Analytics Service:**
+
 - **Performance Metrics**: Win rate, profit factor, expectancy, Sharpe ratio
 - **Equity Curve**: Cumulative PnL over time with drawdown calculation
 - **Breakdown Analysis**: Performance by symbol, strategy, time period
@@ -626,6 +653,7 @@ graph TB
 - **Report Generation**: PDF/CSV reports with customizable timeframes
 
 **Billing Service:**
+
 - **Subscription Management**: Plan upgrades/downgrades, trial periods
 - **Payment Processing**: Razorpay integration for Indian payments
 - **Usage Tracking**: Monitor trade counts and storage usage
@@ -633,6 +661,7 @@ graph TB
 - **Dunning Management**: Failed payment recovery workflows
 
 **Import Service:**
+
 - **CSV Parsing**: Flexible column mapping and validation
 - **Error Handling**: Detailed error reporting for failed imports
 - **Background Processing**: Large imports processed asynchronously
@@ -651,7 +680,7 @@ graph TD
     Base --> Billing
     Base --> Uploads
     Base --> Webhooks
-    
+
     subgraph "Authentication Endpoints"
         Auth[🔐 /auth]
         Auth --> Register[POST /register]
@@ -660,7 +689,7 @@ graph TD
         Auth --> Logout[POST /logout]
         Auth --> Google[GET /google/callback]
     end
-    
+
     subgraph "Trade Management"
         Trades[💹 /trades]
         Trades --> List[GET /]
@@ -671,7 +700,7 @@ graph TD
         Trades --> Import[POST /import]
         Trades --> Export[GET /export]
     end
-    
+
     subgraph "Analytics Endpoints"
         Analytics[📊 /analytics]
         Analytics --> Summary[GET /summary]
@@ -679,20 +708,20 @@ graph TD
         Analytics --> Breakdown[GET /breakdown]
         Analytics --> Statistics[GET /statistics]
     end
-    
+
     subgraph "Billing Endpoints"
         Billing[💰 /billing]
         Billing --> Subscription[GET /subscription]
         Billing --> Checkout[POST /checkout]
         Billing --> Invoices[GET /invoices]
     end
-    
+
     subgraph "Upload Endpoints"
         Uploads[📁 /uploads]
         Uploads --> Presign[POST /presign]
         Uploads --> Confirm[POST /:id/confirm]
     end
-    
+
     subgraph "Webhook Endpoints"
         Webhooks[🌐 /webhooks]
         Webhooks --> Razorpay[POST /razorpay]
@@ -702,20 +731,22 @@ graph TD
 ### 7.2 API Design Principles
 
 **Versioning:**
+
 - URL-based versioning (`/api/v1/`, `/api/v2/`)
 - Backward compatibility within major versions
 - Deprecation notices for upcoming breaking changes
 
 **Response Format:**
+
 ```json
 {
   "data": {
     "id": "trade_123",
     "symbol": "AAPL",
     "side": "BUY",
-    "entryPrice": 175.50,
-    "exitPrice": 182.30,
-    "pnl": 680.00
+    "entryPrice": 175.5,
+    "exitPrice": 182.3,
+    "pnl": 680.0
   },
   "meta": {
     "requestId": "req_abc123",
@@ -729,6 +760,7 @@ graph TD
 ```
 
 **Error Handling:**
+
 ```json
 {
   "error": {
@@ -759,6 +791,7 @@ graph TD
 | Enterprise | 10,000 | 100 | 500 |
 
 **Implementation:**
+
 - Redis-backed rate limiting with sliding windows
 - Different limits per endpoint category (auth vs data)
 - User-based limits to prevent abuse
@@ -771,7 +804,7 @@ graph TD
 ```mermaid
 graph TB
     API[🌐 API Server] -->|Queue Job| RedisQueue[(Redis Queue)]
-    
+
     subgraph "Worker Cluster"
         ImportWorker[📁 Import Worker]
         ExportWorker[📤 Export Worker]
@@ -779,25 +812,25 @@ graph TB
         EmailWorker[📧 Email Worker]
         ReportWorker[📄 Report Worker]
     end
-    
+
     RedisQueue --> ImportWorker
     RedisQueue --> ExportWorker
     RedisQueue --> AnalyticsWorker
     RedisQueue --> EmailWorker
     RedisQueue --> ReportWorker
-    
+
     ImportWorker -->|Process| DB[(PostgreSQL)]
     ExportWorker -->|Generate| S3[(S3 Storage)]
     AnalyticsWorker -->|Calculate| DB
     EmailWorker -->|Send| EmailService[📧 Email Service]
     ReportWorker -->|Create| S3
-    
+
     subgraph "Monitoring"
         Dashboard[📈 Queue Dashboard]
         Alerts[⚠️ Alert System]
         Metrics[📊 Performance Metrics]
     end
-    
+
     WorkerCluster --> Dashboard
     WorkerCluster --> Alerts
     WorkerCluster --> Metrics
@@ -806,6 +839,7 @@ graph TB
 ### 8.2 Job Types & Processing
 
 **Import Jobs:**
+
 - **CSV Import**: Parse and validate trade data from CSV files
 - **Data Validation**: Business rule enforcement and error reporting
 - **Batch Processing**: Insert trades in batches for performance
@@ -813,12 +847,14 @@ graph TB
 - **Notification**: Email upon completion or failure
 
 **Analytics Jobs:**
+
 - **Daily Recalculation**: Update cached metrics overnight
 - **Report Generation**: Create PDF reports for email delivery
 - **Data Aggregation**: Pre-calculate complex statistics
 - **Cache Warming**: Prepare data for peak usage times
 
 **Email Jobs:**
+
 - **Welcome Series**: New user onboarding emails
 - **Weekly Reports**: Performance summaries for active traders
 - **Billing Notifications**: Invoice and payment reminders
@@ -827,17 +863,20 @@ graph TB
 ### 8.3 Queue Management
 
 **Priority Queues:**
+
 1. **High Priority**: Real-time notifications, billing operations
 2. **Medium Priority**: User-initiated exports, report generation
 3. **Low Priority**: Background analytics, data cleanup
 
 **Retry Strategy:**
+
 - **Immediate Retry**: For transient failures (3 attempts)
 - **Delayed Retry**: For resource constraints (1 hour delay)
 - **Exponential Backoff**: For external service failures
 - **Dead Letter Queue**: For permanently failed jobs
 
 **Monitoring & Alerting:**
+
 - Queue length monitoring with alert thresholds
 - Job processing time tracking
 - Worker health checks and auto-restart
@@ -854,7 +893,7 @@ sequenceDiagram
     participant Backend as ⚙️ Backend
     participant S3 as ☁️ AWS S3
     participant DB as 🗄️ Database
-    
+
     Note over User,DB: Step 1: Request Upload Permission
     User->>Frontend: Select file to upload
     Frontend->>Backend: POST /uploads/presign
@@ -862,17 +901,17 @@ sequenceDiagram
     Backend->>DB: Create upload record
     Backend->>S3: Generate presigned URL
     Backend-->>Frontend: Presigned URL + upload ID
-    
+
     Note over User,DB: Step 2: Direct S3 Upload
     Frontend->>S3: PUT file (direct upload)
     S3-->>Frontend: Upload success
-    
+
     Note over User,DB: Step 3: Confirm Upload
     Frontend->>Backend: POST /uploads/:id/confirm
     Backend->>DB: Update upload status
     Backend->>Backend: Process file if needed
     Backend-->>Frontend: File URL
-    
+
     Note over User,DB: Step 4: Associate with Trade
     Frontend->>Backend: PATCH /trades/:id (add attachment)
     Backend->>DB: Link upload to trade
@@ -882,6 +921,7 @@ sequenceDiagram
 ### 9.2 Storage Architecture
 
 **File Organization:**
+
 ```
 s3://trading-journal/
 ├── uploads/
@@ -902,6 +942,7 @@ s3://trading-journal/
 ```
 
 **Security Measures:**
+
 - **Presigned URLs**: Time-limited upload/download URLs
 - **Bucket Policies**: Deny public access by default
 - **Encryption**: SSE-S3 encryption at rest
@@ -909,6 +950,7 @@ s3://trading-journal/
 - **Virus Scanning**: ClamAV integration for uploads
 
 **Lifecycle Management:**
+
 - **Hot Storage**: Recent files (last 90 days)
 - **Warm Storage**: Older files (90 days - 2 years)
 - **Cold Storage**: Archived files (2+ years)
@@ -923,7 +965,7 @@ graph TB
     User[👤 User] --> Frontend
     Frontend[💻 Frontend] --> Checkout[💰 Checkout Page]
     Checkout --> Razorpay[💳 Razorpay Checkout]
-    
+
     subgraph "Payment Flow"
         Razorpay -->|Payment Success| Webhook
         Webhook[🌐 Webhook Endpoint] --> Backend
@@ -932,23 +974,23 @@ graph TB
         Processing[🔧 Process Payment] --> DB[(Database)]
         Processing --> Email[📧 Send Confirmation]
     end
-    
+
     subgraph "Subscription Management"
         Cron[⏰ Scheduled Jobs] --> UsageCheck[📊 Usage Check]
         UsageCheck --> LimitEnforcement[🚫 Enforce Limits]
         LimitEnforcement --> Notification[📢 Notify User]
-        
+
         Cron --> RenewalCheck[🔄 Renewal Check]
         RenewalCheck --> PaymentCollection[💰 Collect Payment]
         PaymentCollection --> FailedPayment[⚠️ Handle Failure]
     end
-    
+
     subgraph "Plan Features"
         Free[🎯 Free Plan]
         Pro[🚀 Pro Plan]
         Enterprise[🏢 Enterprise Plan]
     end
-    
+
     DB --> Free
     DB --> Pro
     DB --> Enterprise
@@ -957,6 +999,7 @@ graph TB
 ### 10.2 Pricing Tiers & Features
 
 **Free Plan (₹0/month):**
+
 - 50 trades per month
 - Basic analytics dashboard
 - CSV import/export
@@ -964,6 +1007,7 @@ graph TB
 - 100MB storage
 
 **Pro Plan (₹499/month):**
+
 - 500 trades per month
 - Advanced analytics with equity curves
 - Team collaboration (5 members)
@@ -972,6 +1016,7 @@ graph TB
 - Priority support
 
 **Enterprise Plan (₹1,999/month):**
+
 - Unlimited trades
 - Unlimited team members
 - Custom reports
@@ -983,6 +1028,7 @@ graph TB
 ### 10.3 Payment Integration
 
 **Razorpay Features:**
+
 - **Subscription Management**: Recurring billing with free trials
 - **Indian Payment Methods**: UPI, NetBanking, Cards, Wallets
 - **Smart Collect**: Virtual account numbers for bank transfers
@@ -990,6 +1036,7 @@ graph TB
 - **Dashboard**: Merchant portal for transaction management
 
 **Payment Flow:**
+
 1. User selects plan on billing page
 2. Backend creates Razorpay subscription
 3. User redirected to Razorpay checkout
@@ -999,6 +1046,7 @@ graph TB
 7. Confirmation email sent to user
 
 **Failed Payment Handling:**
+
 - 3-day grace period for payment retry
 - Automated reminder emails
 - Plan downgrade after 7 days of non-payment
@@ -1016,13 +1064,13 @@ graph TB
         DB[(🗄️ Database)]
         Redis[(⚡ Redis)]
     end
-    
+
     subgraph "Logging Pipeline"
         API -->|Structured Logs| Loki[📝 Loki]
         Workers -->|Structured Logs| Loki
         Loki --> Grafana[📈 Grafana]
     end
-    
+
     subgraph "Metrics Collection"
         API -->|Prometheus Metrics| Prometheus[📊 Prometheus]
         Workers -->|Prometheus Metrics| Prometheus
@@ -1030,26 +1078,26 @@ graph TB
         Redis -->|Performance Metrics| Prometheus
         Prometheus --> Grafana
     end
-    
+
     subgraph "Error Tracking"
         API -->|Errors| Sentry[⚠️ Sentry]
         Workers -->|Errors| Sentry
         Frontend -->|Client Errors| Sentry
         Sentry -->|Alerts| Slack[💬 Slack]
     end
-    
+
     subgraph "Tracing"
         API -->|Traces| Jaeger[🔍 Jaeger]
         Workers -->|Traces| Jaeger
         Jaeger --> Grafana
     end
-    
+
     subgraph "Alerting"
         Prometheus -->|Alert Rules| AlertManager[🚨 AlertManager]
         AlertManager -->|Notifications| Slack
         AlertManager -->|Critical Alerts| PagerDuty[📱 PagerDuty]
     end
-    
+
     subgraph "Dashboards"
         Grafana --> BizDashboard[📈 Business Metrics]
         Grafana --> SysDashboard[⚙️ System Health]
@@ -1061,18 +1109,21 @@ graph TB
 ### 11.2 Key Metrics & Alerts
 
 **Business Metrics:**
+
 - **User Growth**: New signups, active users, retention rate
 - **Revenue Metrics**: MRR, ARR, churn rate, LTV
 - **Product Usage**: Trades logged, reports generated, storage used
 - **Conversion Funnel**: Signup → Activation → Payment
 
 **System Metrics:**
+
 - **API Performance**: Response times, error rates, throughput
 - **Database Health**: Connection pool, query performance, replication lag
 - **Cache Performance**: Hit rates, memory usage, eviction rates
 - **Queue Health**: Job backlog, processing times, failure rates
 
 **Alerting Rules:**
+
 - **Critical**: Service downtime, payment failures, data corruption
 - **Warning**: Performance degradation, high error rates, capacity limits
 - **Info**: Feature usage, user behavior changes, business milestones
@@ -1080,12 +1131,14 @@ graph TB
 ### 11.3 Logging Strategy
 
 **Log Levels:**
+
 - **ERROR**: System failures, data corruption, security incidents
 - **WARN**: Degraded performance, deprecated feature usage
 - **INFO**: Business transactions, user actions, system events
 - **DEBUG**: Detailed troubleshooting, request/response dumps
 
 **Structured Logging:**
+
 ```json
 {
   "timestamp": "2025-12-10T10:30:00Z",
@@ -1098,11 +1151,12 @@ graph TB
   "tradeId": "trade_789",
   "duration": 125,
   "symbol": "AAPL",
-  "pnl": 680.50
+  "pnl": 680.5
 }
 ```
 
 **Log Retention:**
+
 - **Debug logs**: 7 days
 - **Info logs**: 30 days
 - **Warn/Error logs**: 1 year
@@ -1116,63 +1170,63 @@ graph TB
 graph TB
     subgraph "Production Environment"
         DNS[🌐 Cloudflare DNS] --> LB[🔀 Load Balancer]
-        
+
         subgraph "Frontend Cluster"
             FE1[📱 Next.js App]
             FE2[📱 Next.js App]
             FE3[📱 Next.js App]
         end
-        
+
         subgraph "Backend Cluster"
             API1[⚙️ API Server]
             API2[⚙️ API Server]
             API3[⚙️ API Server]
         end
-        
+
         subgraph "Worker Cluster"
             W1[🔧 Worker]
             W2[🔧 Worker]
             W3[🔧 Worker]
         end
-        
+
         LB --> FE1
         LB --> FE2
         LB --> FE3
         FE1 --> API1
         FE2 --> API2
         FE3 --> API3
-        
+
         subgraph "Data Layer"
             PrimaryDB[(Primary DB)]
             ReplicaDB[(Read Replica)]
             Cache[(Redis)]
             Storage[(S3)]
         end
-        
+
         API1 --> PrimaryDB
         API2 --> PrimaryDB
         API3 --> PrimaryDB
         W1 --> PrimaryDB
         W2 --> PrimaryDB
         W3 --> PrimaryDB
-        
+
         API1 --> ReplicaDB
         API2 --> ReplicaDB
         API3 --> ReplicaDB
-        
+
         API1 --> Cache
         API2 --> Cache
         API3 --> Cache
-        
+
         API1 --> Storage
         W1 --> Storage
     end
-    
+
     subgraph "Staging Environment"
         StagingLB[🔀 Staging LB] --> StagingAPI[⚙️ Staging API]
         StagingAPI --> StagingDB[(Staging DB)]
     end
-    
+
     subgraph "CI/CD Pipeline"
         GitHub[🐙 GitHub] --> Actions[⚡ GitHub Actions]
         Actions --> Build[🔨 Build & Test]
@@ -1185,18 +1239,21 @@ graph TB
 ### 12.2 Deployment Environments
 
 **Development:**
+
 - Local development with Docker Compose
 - Hot reload for fast iteration
 - Mock external services for offline development
 - Database seeding with sample data
 
 **Staging:**
+
 - Mirrors production environment
 - Automated testing before deployment
 - Performance testing with realistic loads
 - Feature flag testing and validation
 
 **Production:**
+
 - Multi-region deployment for redundancy
 - Auto-scaling based on load
 - Blue-green deployment for zero downtime
@@ -1205,12 +1262,14 @@ graph TB
 ### 12.3 CI/CD Pipeline
 
 **Build Stage:**
+
 1. **Code Quality**: Linting, type checking, security scanning
 2. **Unit Tests**: Component and utility function tests
 3. **Integration Tests**: API endpoint and database interaction tests
 4. **E2E Tests**: User journey testing with Playwright
 
 **Deploy Stage:**
+
 1. **Staging Deployment**: Automatic deployment to staging environment
 2. **Smoke Tests**: Basic functionality verification
 3. **Performance Tests**: Load testing with k6
@@ -1218,6 +1277,7 @@ graph TB
 5. **Production Deployment**: Zero-downtime deployment with health checks
 
 **Post-Deployment:**
+
 1. **Health Monitoring**: Verify all services are running
 2. **Error Monitoring**: Watch for increased error rates
 3. **Performance Monitoring**: Ensure response times are acceptable
@@ -1234,28 +1294,28 @@ graph TB
         DDoS[🛡️ DDoS Protection]
         TLS[🔒 TLS 1.3]
     end
-    
+
     subgraph "Application Layer"
         Auth[🔐 Authentication]
         RBAC[👥 Authorization]
         Validation[✓ Input Validation]
         RateLimit[🚫 Rate Limiting]
     end
-    
+
     subgraph "Data Layer"
         Encryption[🔐 Encryption at Rest]
         RLS[🔒 Row-Level Security]
         Audit[📝 Audit Logging]
         Backup[💾 Encrypted Backups]
     end
-    
+
     subgraph "Infrastructure"
         Secrets[🔑 Secrets Management]
         Patching[🔧 Security Patching]
         Monitoring[👀 Security Monitoring]
         Scanning[🔍 Vulnerability Scanning]
     end
-    
+
     Request[🌐 HTTP Request] --> WAF
     WAF --> DDoS
     DDoS --> TLS
@@ -1272,6 +1332,7 @@ graph TB
 ### 13.2 Security Measures
 
 **Authentication Security:**
+
 - **JWT Signing**: RSA 256-bit keys for token signing
 - **Token Rotation**: Refresh tokens rotated on each use
 - **Session Management**: Redis-based session storage
@@ -1279,6 +1340,7 @@ graph TB
 - **Account Lockout**: Temporary lockout after failed attempts
 
 **Data Security:**
+
 - **Encryption at Rest**: AES-256 encryption for sensitive data
 - **Encryption in Transit**: TLS 1.3 for all communications
 - **Secure Headers**: HSTS, CSP, X-Frame-Options, X-XSS-Protection
@@ -1286,6 +1348,7 @@ graph TB
 - **XSS Protection**: Output encoding and Content Security Policy
 
 **Infrastructure Security:**
+
 - **Secrets Management**: AWS Secrets Manager for sensitive configuration
 - **Network Isolation**: Private subnets and security groups
 - **Access Control**: Principle of least privilege for IAM roles
@@ -1295,18 +1358,21 @@ graph TB
 ### 13.3 Compliance & Privacy
 
 **GDPR Compliance:**
+
 - **Data Portability**: Export all user data in machine-readable format
 - **Right to Erasure**: Complete account deletion with 30-day recovery window
 - **Data Processing Agreement**: Contract with sub-processors
 - **Privacy by Design**: Data minimization and purpose limitation
 
 **Data Retention Policy:**
+
 - **Active Users**: Data retained indefinitely
 - **Inactive Users**: Data retained for 3 years
 - **Deleted Accounts**: Data purged after 30 days
 - **Backup Retention**: 30 days of daily backups
 
 **Incident Response:**
+
 1. **Detection**: Automated monitoring and alerting
 2. **Containment**: Isolate affected systems
 3. **Investigation**: Root cause analysis
@@ -1327,7 +1393,7 @@ graph TB
         LazyLoading[🔄 Lazy Loading]
         ServiceWorker[⚡ Service Worker]
     end
-    
+
     subgraph "API Optimization"
         ResponseCache[⚡ Response Caching]
         QueryOptimization[🔍 Query Optimization]
@@ -1335,7 +1401,7 @@ graph TB
         Compression[🗜️ Response Compression]
         Pagination[📄 Smart Pagination]
     end
-    
+
     subgraph "Database Optimization"
         Indexing[📇 Strategic Indexing]
         MaterializedViews[🔍 Materialized Views]
@@ -1343,32 +1409,32 @@ graph TB
         Partitioning[🗂️ Table Partitioning]
         QueryCache[💾 Query Result Cache]
     end
-    
+
     subgraph "Background Optimization"
         AsyncProcessing[🔄 Async Processing]
         BatchOperations[📦 Batch Operations]
         JobPrioritization[🎯 Job Prioritization]
         ResourceScaling[📈 Auto-scaling]
     end
-    
+
     User[👤 User] --> CDN
     CDN --> BrowserCache
     BrowserCache --> CodeSplitting
     CodeSplitting --> LazyLoading
     LazyLoading --> ServiceWorker
-    
+
     ServiceWorker --> ResponseCache
     ResponseCache --> QueryOptimization
     QueryOptimization --> ConnectionPool
     ConnectionPool --> Compression
     Compression --> Pagination
-    
+
     Pagination --> Indexing
     Indexing --> MaterializedViews
     MaterializedViews --> ReadReplicas
     ReadReplicas --> Partitioning
     Partitioning --> QueryCache
-    
+
     QueryCache --> AsyncProcessing
     AsyncProcessing --> BatchOperations
     BatchOperations --> JobPrioritization
@@ -1378,6 +1444,7 @@ graph TB
 ### 14.2 Performance Targets
 
 **Frontend Performance:**
+
 - **First Contentful Paint**: < 1.5 seconds
 - **Time to Interactive**: < 3 seconds
 - **Largest Contentful Paint**: < 2.5 seconds
@@ -1385,6 +1452,7 @@ graph TB
 - **First Input Delay**: < 100 milliseconds
 
 **API Performance:**
+
 - **P50 Response Time**: < 100 milliseconds
 - **P95 Response Time**: < 250 milliseconds
 - **P99 Response Time**: < 500 milliseconds
@@ -1392,6 +1460,7 @@ graph TB
 - **Error Rate**: < 0.1%
 
 **Database Performance:**
+
 - **Query Response Time**: < 50 milliseconds (p95)
 - **Connection Pool Usage**: < 80% capacity
 - **Cache Hit Ratio**: > 95%
@@ -1408,6 +1477,7 @@ graph TB
 | **Database** | 1 hour | Scheduled | Materialized views, aggregates |
 
 **Database Optimization:**
+
 - **Indexing**: Composite indexes for common query patterns
 - **Query Planning**: Analyze and optimize slow queries
 - **Connection Pooling**: pgBouncer for connection management
@@ -1415,6 +1485,7 @@ graph TB
 - **Partitioning**: Time-based partitioning for large tables
 
 **Frontend Optimization:**
+
 - **Code Splitting**: Route-based and component-based splitting
 - **Image Optimization**: WebP format with responsive sizing
 - **Bundle Analysis**: Regular bundle size monitoring
@@ -1433,39 +1504,39 @@ graph TB
         PrimaryCache[(Primary Redis)]
         PrimaryStorage[(Primary S3)]
     end
-    
+
     subgraph "Secondary Region - Singapore"
         SecondaryApp[⚙️ Standby Application]
         SecondaryDB[(Replica Database)]
         SecondaryCache[(Replica Redis)]
         SecondaryStorage[(Replica S3)]
     end
-    
+
     subgraph "Backup Storage"
         DailyBackups[📅 Daily Backups]
         WeeklyBackups[📅 Weekly Backups]
         MonthlyBackups[📅 Monthly Backups]
     end
-    
+
     subgraph "Monitoring & Alerting"
         HealthChecks[❤️ Health Checks]
         FailoverDetection[⚠️ Failover Detection]
         AutoRecovery[🔄 Auto Recovery]
         Notification[📢 Notification System]
     end
-    
+
     PrimaryApp --> PrimaryDB
     PrimaryApp --> PrimaryCache
     PrimaryApp --> PrimaryStorage
-    
+
     PrimaryDB -.->|Async Replication| SecondaryDB
     PrimaryCache -.->|Redis Replication| SecondaryCache
     PrimaryStorage -.->|Cross-region Replication| SecondaryStorage
-    
+
     PrimaryDB --> DailyBackups
     PrimaryDB --> WeeklyBackups
     PrimaryDB --> MonthlyBackups
-    
+
     HealthChecks --> PrimaryApp
     HealthChecks --> PrimaryDB
     FailoverDetection --> HealthChecks
@@ -1476,12 +1547,14 @@ graph TB
 ### 15.2 Recovery Objectives
 
 **Recovery Time Objective (RTO):**
+
 - **Critical Systems**: < 15 minutes
 - **Core Services**: < 1 hour
 - **Non-critical Services**: < 4 hours
 - **Full Recovery**: < 8 hours
 
 **Recovery Point Objective (RPO):**
+
 - **User Data**: < 5 minutes
 - **Analytics Data**: < 1 hour
 - **System Logs**: < 15 minutes
@@ -1490,6 +1563,7 @@ graph TB
 ### 15.3 Backup Strategy
 
 **Database Backups:**
+
 - **Continuous**: WAL archiving for point-in-time recovery
 - **Daily**: Full backups with 30-day retention
 - **Weekly**: Weekly backups with 3-month retention
@@ -1497,12 +1571,14 @@ graph TB
 - **Annual**: Yearly archives with 7-year retention
 
 **File Storage Backups:**
+
 - **Versioning**: S3 versioning for all uploaded files
 - **Replication**: Cross-region replication for disaster recovery
 - **Lifecycle**: Automated tiering to Glacier for older files
 - **Validation**: Regular backup integrity checks
 
 **Recovery Procedures:**
+
 1. **Failover Detection**: Automated health checks and alerting
 2. **DNS Switch**: Route traffic to secondary region
 3. **Database Promotion**: Promote replica to primary
@@ -1534,6 +1610,7 @@ The Trading Journal SaaS application is designed as a modern, scalable platform 
 7. **Infrastructure as Code**: Automated deployment with CI/CD pipelines ensures consistent, repeatable environments.
 
 ### Success Metrics:
+
 - **User Experience**: Sub-2 second page loads, intuitive navigation
 - **System Reliability**: 99.95% uptime, automated failover
 - **Security**: Zero critical vulnerabilities, GDPR compliance
@@ -1545,4 +1622,4 @@ This architecture provides a solid foundation for rapid iteration while maintain
 ---
 
 **Document Version**: 3.0  
-**Status**: Final  
+**Status**: Final
